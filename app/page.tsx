@@ -4,7 +4,6 @@ import { CalendarDays } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { MovieCarousel } from "@/components/movie-carousel"
-import { SearchBar } from "@/components/search-bar"
 
 export default function Home() {
   return (
@@ -50,7 +49,7 @@ export default function Home() {
             <Link href="/now-showing">View All</Link>
           </Button>
         </div>
-        <MovieCarousel />
+        <MovieCarousel type="now-showing"/>
       </section>
 
       {/* Coming Soon Section */}
@@ -61,7 +60,8 @@ export default function Home() {
             <Link href="/coming-soon">View All</Link>
           </Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <MovieCarousel type="coming-soon" />
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((movie) => (
             <Card key={movie} className="overflow-hidden">
               <div className="aspect-[2/3] relative">
@@ -93,7 +93,7 @@ export default function Home() {
               </CardContent>
             </Card>
           ))}
-        </div>
+        </div> */}
       </section>
     </div>
   )

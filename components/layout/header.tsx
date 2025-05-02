@@ -1,9 +1,19 @@
+'use client';
+
 import Link from "next/link";
 import { Button } from "../ui/button";
-import { Search, User } from "lucide-react";
+import { LogOut, Search, User } from "lucide-react";
 import { Input } from "../ui/input";
+import { getCookieToken, removeCookieToken } from "@/utils/cookie";
 
 const Header = () => {
+    const token = getCookieToken();
+
+    const handleSignOut = () => {
+        removeCookieToken();
+        window.location.href = "/login";
+    };
+
     return (
         <header className="sticky px-15 top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-16 items-center">
@@ -36,15 +46,24 @@ const Header = () => {
                             className="w-[200px] pl-8 md:w-[300px] lg:w-[400px]"
                         />
                     </div>
-                    <Button variant="outline" size="icon" asChild>
-                        <Link href="/account">
-                            <User className="h-4 w-4" />
-                            <span className="sr-only">Account</span>
-                        </Link>
-                    </Button>
-                    <Button asChild>
-                        <Link href="/account/login">Sign In</Link>
-                    </Button>
+                    {token && (
+                        <Button variant="outline" size="icon" asChild>
+                            <Link href="/account">
+                                <User className="h-4 w-4" />
+                                <span className="sr-only">Account</span>
+                            </Link>
+                        </Button>
+                    )}
+                    {token ? (
+                        <Button variant="outline" onClick={handleSignOut}>
+                            <LogOut className="h-4 w-4 mr-2" />
+                            Sign Out
+                        </Button>
+                    ) : (
+                        <Button asChild>
+                            <Link href="/login">Sign In</Link>
+                        </Button>
+                    )}
                 </div>
             </div>
         </header>

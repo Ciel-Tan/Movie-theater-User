@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { CalendarDays, CreditCard, Edit, LogOut, User } from "lucide-react"
+import { CalendarDays, CreditCard, Edit, User } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -60,10 +60,6 @@ export default function AccountPage() {
     <div className="container py-8 px-15">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">My Account</h1>
-        <Button variant="outline">
-          <LogOut className="h-4 w-4 mr-2" />
-          Sign Out
-        </Button>
       </div>
 
       <Tabs defaultValue="profile" className="w-full">

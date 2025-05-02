@@ -11,31 +11,31 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useAuth } from "@/hooks/useAuth"
+import { createCookieToken } from "@/utils/cookie"
 
 export default function LoginPage() {
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
+  const [loginData, setLoginData] = useState({ email: "", password: "" })
 
-  const handleLogin = (e: React.FormEvent) => {
+  const { Login, Register, loading, error } = useAuth()
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-
-    // Simulate login process
-    setTimeout(() => {
-      setIsLoading(false)
-      router.push("/account")
-    }, 1500)
+    
+    const response = await Login({ ...loginData })
+    if (error) {
+      console.error("Login error:", error)
+      return
+    }
+    
+    createCookieToken(response)
+    window.location.href = "/account"
   }
 
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-
-    // Simulate signup process
-    setTimeout(() => {
-      setIsLoading(false)
-      router.push("/account")
-    }, 1500)
+    
   }
 
   return (
@@ -56,7 +56,14 @@ export default function LoginPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="your@email.com" required />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={loginData.email}
+                    onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -65,12 +72,19 @@ export default function LoginPage() {
                       Forgot password?
                     </Link>
                   </div>
-                  <Input id="password" type="password" required />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="********"
+                    value={loginData.password}
+                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                    required
+                  />
                 </div>
               </CardContent>
               <CardFooter>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Logging in..." : "Login"}
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Logging in..." : "Login"}
                 </Button>
               </CardFooter>
             </form>
@@ -85,32 +99,51 @@ export default function LoginPage() {
             </CardHeader>
             <form onSubmit={handleSignup}>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" required />
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <Label htmlFor="firstName">Full Name</Label>
+                    <Input id="firstName" className="h-8 p-2" placeholder="Your full name" required />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" required />
+                  <div className="space-y-1">
+                    <Label htmlFor="lastName">Gender</Label>
+                    <div className="flex items-center space-x-4 h-8">
+                      <Label htmlFor="male" className="flex items-center gap-2">
+                        <Input
+                          type="radio"
+                          className="w-4 h-4"
+                          id="male"
+                          required
+                        />
+                        Male
+                      </Label>
+                      <Label htmlFor="female" className="flex items-center gap-2">
+                        <Input
+                          type="radio"
+                          className="w-4 h-4"
+                          id="female"
+                          required
+                        />
+                        Female
+                      </Label>
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label htmlFor="signupEmail">Email</Label>
                   <Input id="signupEmail" type="email" placeholder="your@email.com" required />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label htmlFor="signupPassword">Password</Label>
                   <Input id="signupPassword" type="password" required />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label htmlFor="confirmPassword">Confirm Password</Label>
                   <Input id="confirmPassword" type="password" required />
                 </div>
               </CardContent>
               <CardFooter>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Creating account..." : "Create Account"}
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Creating account..." : "Create Account"}
                 </Button>
               </CardFooter>
             </form>
