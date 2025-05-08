@@ -5,7 +5,7 @@ const Footer = () => {
         <footer className="border-t py-6 px-15 md:py-0">
             <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
                 <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-                    © 2025 CinePlex. All rights reserved.
+                    © 2025 CielTanMovies. All rights reserved.
                 </p>
                 <div className="flex items-center gap-4">
                     <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground">

@@ -6,16 +6,18 @@ import { format, addDays } from "date-fns"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { IShowtime } from "@/types/movie"
 
 interface ShowtimeSelectorProps {
+  showtimes?: IShowtime[]
   movieId: number
 }
 
-export function ShowtimeSelector({ movieId }: ShowtimeSelectorProps) {
+export function ShowtimeSelector({ showtimes = [], movieId }: ShowtimeSelectorProps) {
   const router = useRouter()
   const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), "yyyy-MM-dd"))
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
-  const [selectedAuditorium, setSelectedAuditorium] = useState<string | null>(null)
+  const [selectedCinema, setSelectedCinema] = useState<string | null>(null)
 
   // Generate next 7 days for date selection
   const dates = Array.from({ length: 7 }, (_, i) => {
@@ -27,36 +29,25 @@ export function ShowtimeSelector({ movieId }: ShowtimeSelectorProps) {
     }
   })
 
-  // Mock showtimes data - this would come from an API
-  const auditoriums = [
-    {
-      id: "1",
-      name: "Auditorium 1",
-      times: ["10:00", "13:30", "17:00", "20:30"],
-    },
-    {
-      id: "2",
-      name: "Auditorium 2 (IMAX)",
-      times: ["11:15", "14:45", "18:15", "21:45"],
-    },
-    {
-      id: "3",
-      name: "Auditorium 3 (VIP)",
-      times: ["12:00", "15:30", "19:00", "22:30"],
-    },
-  ]
-
-  const handleTimeSelect = (auditoriumId: string, time: string) => {
-    setSelectedAuditorium(auditoriumId)
+  const handleTimeSelect = (cinema_name: string, time: string) => {
+    setSelectedCinema(cinema_name)
     setSelectedTime(time)
   }
 
   const handleBooking = () => {
-    if (selectedDate && selectedTime && selectedAuditorium) {
-      router.push(`/booking/${movieId}?date=${selectedDate}&time=${selectedTime}&auditorium=${selectedAuditorium}`)
+    if (selectedDate && selectedTime && selectedCinema) {
+      router.push(`/booking/${movieId}?date=${selectedDate}&time=${selectedTime}&cinema=${selectedCinema}`)
     }
   }
 
+  const getCurrentDay = () => {
+    return showtimes.filter((showtime) => showtime.show_datetime.startsWith(selectedDate))
+  }
+
+  const getTimesByDayAndCinema = (showtime: IShowtime) => {
+    return getCurrentDay().filter((st) => st.cinema.cinema_id === showtime.cinema.cinema_id)
+  }
+  
   return (
     <Card>
       <CardContent className="p-6">
@@ -81,26 +72,36 @@ export function ShowtimeSelector({ movieId }: ShowtimeSelectorProps) {
 
         <div>
           <h3 className="text-lg font-medium mb-3">Select Time</h3>
-          {auditoriums.map((auditorium) => (
-            <div key={auditorium.id} className="mb-4">
-              <h4 className="font-medium text-sm text-muted-foreground mb-2">{auditorium.name}</h4>
-              <div className="flex flex-wrap gap-2">
-                {auditorium.times.map((time) => (
-                  <Button
-                    key={`${auditorium.id}-${time}`}
-                    variant={selectedTime === time && selectedAuditorium === auditorium.id ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleTimeSelect(auditorium.id, time)}
-                  >
-                    {time}
-                  </Button>
-                ))}
+          {getCurrentDay().length > 0 ? (
+            getCurrentDay().map((showtime) => (
+              <div key={showtime.showtime_id} className="mb-4">
+                <h4 className="font-medium text-sm text-muted-foreground mb-2">
+                  {`${showtime.cinema.cinema_name}`}
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {getTimesByDayAndCinema(showtime).map((st) => (
+                    <Button
+                      key={`${st.showtime_id}-${st.cinema.cinema_id}`}
+                      variant={selectedTime === st.show_datetime.slice(11, 16) ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handleTimeSelect(showtime.cinema.cinema_name, st.show_datetime.slice(11, 16))}
+                    >
+                      {st.show_datetime.slice(11, 16)}
+                    </Button>
+                  ))}
+                </div>
               </div>
+            ))
+          ) : (
+            <div className="mb-4">
+              <h4 className="font-medium text-sm text-muted-foreground mb-2">
+                No showtimes available for selected date
+              </h4>
             </div>
-          ))}
+          )}
         </div>
 
-        <Button className="w-full mt-4" disabled={!selectedTime || !selectedAuditorium} onClick={handleBooking}>
+        <Button className="w-full mt-4" disabled={!selectedTime || !selectedCinema} onClick={handleBooking}>
           Continue to Seat Selection
         </Button>
       </CardContent>

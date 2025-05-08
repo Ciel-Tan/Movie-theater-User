@@ -49,7 +49,7 @@ export default function ConfirmationPage({ params }: { params: { id: string } })
 
       <Card className="mb-8">
         <CardHeader className="text-center border-b">
-          <CardTitle>CinePlex Tickets</CardTitle>
+          <CardTitle>CielTanMovies Tickets</CardTitle>
           <CardDescription>Confirmation #{confirmationNumber}</CardDescription>
         </CardHeader>
         <CardContent className="p-6">

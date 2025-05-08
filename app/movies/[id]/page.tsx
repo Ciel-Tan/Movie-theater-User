@@ -1,9 +1,6 @@
 'use client'
 
-import Link from "next/link"
-import { CalendarDays, Clock, Film, Star, Users } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
+import { CalendarDays, Clock, Star } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ShowtimeSelector } from "@/components/showtime-selector"
 import { useGetMovie } from "@/hooks/useGetMovie"
@@ -56,12 +53,6 @@ export default function MovieDetail() {
                 <CalendarDays className="h-5 w-5" />
                 <span>Release Date: {formatDay({ date: movie?.release_date })}</span>
               </div>
-              {/* <Button className="w-full" asChild>
-                <Link href="#showtimes">Book Tickets</Link>
-              </Button>
-              <Button variant="outline" className="w-full">
-                <Film className="mr-2 h-4 w-4" /> Watch Trailer
-              </Button> */}
             </div>
           </div>
         </div>
@@ -106,7 +97,7 @@ export default function MovieDetail() {
           {/* Showtime Section */}
           <div id="showtime">
             <h2 className="text-2xl font-bold mb-4">Showtime</h2>
-            <ShowtimeSelector movieId={movie?.movie_id} />
+            <ShowtimeSelector showtimes={movie?.showtime} movieId={movie_id} />
           </div>
         </div>
       </div>

@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/hooks/useAuth"
 import { createCookieToken } from "@/utils/cookie"
+import Loader from "@/components/common/loader"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -84,7 +85,7 @@ export default function LoginPage() {
               </CardContent>
               <CardFooter>
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Logging in..." : "Login"}
+                  {loading ? <Loader /> : "Login"}
                 </Button>
               </CardFooter>
             </form>

@@ -16,11 +16,11 @@ const Header = () => {
 
     return (
         <header className="sticky px-15 top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container flex h-16 items-center">
+            <div className="container flex h-16 items-center justify-between">
                 <Link href="/" className="flex items-center gap-2">
-                    <span className="text-xl font-bold">CinePlex</span>
+                    <span className="text-xl font-bold">CielTanMovies</span>
                 </Link>
-                <nav className="mx-6 flex items-center space-x-4 lg:space-x-6">
+                <nav className="mx-6 flex items-center space-x-4 lg:space-x-6 border-l-2 pl-6">
                     <Link href="/" className="text-sm font-medium transition-colors hover:text-primary">
                         Home
                     </Link>
@@ -35,6 +35,12 @@ const Header = () => {
                         className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
                     >
                         Coming Soon
+                    </Link>
+                    <Link
+                        href="/schedule"
+                        className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+                    >
+                        Schedule
                     </Link>
                 </nav>
                 <div className="ml-auto flex items-center gap-4">
