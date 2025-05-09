@@ -5,7 +5,8 @@ import { IMovie, IMovieDetail } from "@/types/movie";
 import { useEffect, useState } from "react";
 
 export const useGetMovie = (id: number) => {
-    const [moviesData, setMoviesData] = useState<IMovie[] | IMovieDetail[]>([]);
+    const [moviesData, setMoviesData] = useState<IMovieDetail[] | null>(null);
+    const [movieDetail, setMovieDetail] = useState<IMovieDetail | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -14,6 +15,7 @@ export const useGetMovie = (id: number) => {
         try {
             const movies = await getAllMovies();
             setMoviesData(movies);
+            setMovieDetail(null);
         }
         catch (error) {
             console.error("Error get all movies: ", error);
@@ -28,7 +30,8 @@ export const useGetMovie = (id: number) => {
         setLoading(true);
         try {
             const movie = await getMovieById(id);
-            setMoviesData([movie]);
+            setMovieDetail(movie);
+            setMoviesData(null);
         }
         catch (error) {
             console.error("Error get movie by id: ", error);
@@ -80,5 +83,5 @@ export const useGetMovie = (id: number) => {
         }
     }, [id]);
 
-    return { moviesData, loading, error };
+    return { moviesData, movieDetail, loading, error };
 };

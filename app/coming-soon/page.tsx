@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useGetMovie } from "@/hooks/useGetMovie"
-import { IGenre, IMovie } from "@/types/movie"
+import { IGenre, IMovie, IMovieDetail } from "@/types/movie"
 import { useGetGenre } from "@/hooks/useGetGenre"
+import Loader from "@/components/common/loader"
 
 export default function ComingSoonPage() {
-  const { moviesData } = useGetMovie(-1)
+  const { moviesData, loading, error } = useGetMovie(-1)
   const { genresData } = useGetGenre()
 
   return (
@@ -52,34 +53,40 @@ export default function ComingSoonPage() {
       </div>
 
       {/* Movie Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {moviesData.map((movie: IMovie) => (
-          <Card key={movie.movie_id} className="overflow-hidden">
-            <div className="aspect-[2/3] relative">
-              <img src={movie.poster_image || "/placeholder.svg"} alt={movie.title} className="object-cover w-full h-full" />
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                <div className="text-white">
-                  <div className="flex items-center gap-2 text-sm mb-1">
-                    <CalendarDays className="h-4 w-4" />
-                    <span>Coming {movie.release_date}</span>
+      {loading ? (
+        <div className="h-[400px] flex items-center justify-center">
+          <Loader color="black" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {moviesData?.map((movie: IMovieDetail) => (
+            <Card key={movie.movie_id} className="overflow-hidden">
+              <div className="aspect-[2/3] relative">
+                <img src={movie.poster_image || "/placeholder.svg"} alt={movie.title} className="object-cover w-full h-full" />
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                  <div className="text-white">
+                    <div className="flex items-center gap-2 text-sm mb-1">
+                      <CalendarDays className="h-4 w-4" />
+                      <span>Coming {movie.release_date}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <CardContent className="p-4">
-              <h3 className="font-bold text-lg mb-1">{movie.title}</h3>
-              <div className="text-sm text-muted-foreground mb-2">{movie.genres?.map((genre) => genre.genre_name).join(", ")}</div>
-              <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{movie.description}</p>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline">
-                  Watch Trailer
-                </Button>
-                <Button size="sm">Remind Me</Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              <CardContent className="p-4">
+                <h3 className="font-bold text-lg mb-1">{movie.title}</h3>
+                <div className="text-sm text-muted-foreground mb-2">{movie.genres?.map((genre) => genre.genre_name).join(", ")}</div>
+                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{movie.description}</p>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline">
+                    Watch Trailer
+                  </Button>
+                  <Button size="sm">Remind Me</Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

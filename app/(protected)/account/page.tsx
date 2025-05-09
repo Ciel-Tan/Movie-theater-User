@@ -33,7 +33,11 @@ export default function AccountPage() {
     setAccount(accountData as IAccount)
   }, [accountData])
 
-  if (loading || bookingLoading) return <Loader />
+  if (loading || bookingLoading) return (
+    <div className="h-[400px] flex items-center justify-center">
+      <Loader color="black" />
+    </div>
+  )
   if (error || bookingError) return <div>Error: {error}</div>
 
   const getUpcomingBookings = (): IBooking[] => {
@@ -185,7 +189,9 @@ export default function AccountPage() {
 
                 <TabsContent value="upcoming">
                   {bookingLoading ? (
-                    <Loader />
+                    <div className="h-[400px] flex items-center justify-center">
+                      <Loader color="black" />
+                    </div>
                   ) : (
                     <div className="space-y-4">
                       {getUpcomingBookings().map((booking: IBooking) => (
@@ -235,7 +241,9 @@ export default function AccountPage() {
 
                 <TabsContent value="past">
                   {bookingLoading ? (
-                    <Loader />
+                    <div className="h-[400px] flex items-center justify-center">
+                      <Loader color="black" />
+                    </div>
                   ) : (
                     <div className="space-y-4">
                       {getPastBookings().map((booking) => (

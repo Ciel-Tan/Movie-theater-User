@@ -38,20 +38,6 @@ export interface IMovieOnly {
 }
 
 export interface IMovie extends IMovieOnly {
-    movie_id: number
-    title: string
-    poster_image: string
-    poster_url: string
-    description: string
-    age_rating: number
-    run_time: number
-    release_date: string
-    trailer_link: string
-    language: string
-    director: {
-        director_id: number
-        director_name: string
-    }
     genres: [
         {
             genre_id: number

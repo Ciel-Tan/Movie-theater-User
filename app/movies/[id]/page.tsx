@@ -7,15 +7,20 @@ import { useGetMovie } from "@/hooks/useGetMovie"
 import { IMovieDetail } from "@/types/movie"
 import { useParams } from "next/navigation"
 import { formatDay } from "@/utils/formatDay"
+import Loader from "@/components/common/loader"
 
 export default function MovieDetail() {
   const params : { id: string } = useParams()
   const movie_id = parseInt(params.id, 10)
-  const { moviesData, loading } = useGetMovie(movie_id)
-  const movie = moviesData?.[0] as IMovieDetail
+  const { movieDetail, loading } = useGetMovie(movie_id)
+  const movie = movieDetail as IMovieDetail
 
   if (loading) {
-    return <div className="container py-8 px-15">Loading...</div>
+    return (
+      <div className="h-[400px] flex items-center justify-center">
+        <Loader color="black" />
+      </div>
+    )
   }
 
   return (
