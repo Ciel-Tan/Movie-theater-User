@@ -1,8 +1,9 @@
 import { getAccountById } from "@/services/accountService";
+import { IAccount } from "@/types/account";
 import { useEffect, useState } from "react";
 
 export const useGetAccount = (account_id: number | null) => {
-    const [accountData, setAccountData] = useState({});
+    const [accountData, setAccountData] = useState<IAccount>();
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 

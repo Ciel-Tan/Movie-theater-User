@@ -159,7 +159,6 @@ export default function SchedulePage() {
                       {movie.showtime.filter((showtime) => showtime.cinema.cinema_name === selectedCinema && showtime.show_datetime.startsWith(selectedDate)).map((showtime, index) => {
                         // const seatStatus = getSeatStatus(showtime.availableSeats)
                         const displayShowtime = showtime.show_datetime.slice(11, 16)
-                        // console.log(showtime)
                         return (
                           <TooltipProvider key={index}>
                             <Tooltip>
@@ -175,7 +174,7 @@ export default function SchedulePage() {
                               </TooltipTrigger>
                               <TooltipContent>
                                 <div className="text-xs">
-                                  <p>Auditorium {showtime.cinema.cinema_name}</p>
+                                  <p>Room {showtime.room.room_name}</p>
                                   {/* <p>{showtime.availableSeats} seats available</p> */}
                                 </div>
                               </TooltipContent>

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useGetMovie } from "@/hooks/useGetMovie"
-import { IGenre, IMovie, IMovieDetail } from "@/types/movie"
+import { IGenre, IMovieDetail } from "@/types/movie"
 import { useGetGenre } from "@/hooks/useGetGenre";
 import Loader from "@/components/common/loader";
 

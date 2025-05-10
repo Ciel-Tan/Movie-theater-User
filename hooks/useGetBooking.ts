@@ -1,23 +1,40 @@
-import { getBookingByAccountId } from "@/services/bookingService";
+import { getBookingByAccountId, getBookingByMovieId } from "@/services/bookingService";
 import { IBooking } from "@/types/booking";
 import { useEffect, useState } from "react";
 
-export const useGetBooking = (account_id: number | null) => {
+export const useGetBooking = (criteria: string | null, id: number | null) => {
     const [bookingData, setBookingData] = useState<IBooking[]>([]);
     const [bookingLoading, setBookingLoading] = useState<boolean>(false);
     const [bookingError, setBookingError] = useState<string | null>(null);
 
-    const getBooking = async () => {
-        if (account_id === null) return
+    const getBookingAccount = async () => {
+        if (id === null) return
 
         setBookingLoading(true);
         try {
-            const booking = await getBookingByAccountId(account_id);
+            const booking = await getBookingByAccountId(id);
             setBookingData(booking);
         }
         catch (error) {
-            console.error(`Error get booking by account id ${account_id}: `, error);
-            setBookingError(`Failed to get booking by account id ${account_id}`);
+            console.error(`Error get booking by account id ${id}: `, error);
+            setBookingError(`Failed to get booking by account id ${id}`);
+        }
+        finally {
+            setBookingLoading(false);
+        }
+    };
+
+    const getBookingMovie = async () => {
+        if (id === null) return
+
+        setBookingLoading(true);
+        try {
+            const booking = await getBookingByMovieId(id);
+            setBookingData(booking);
+        }
+        catch (error) {
+            console.error(`Error get booking by movie id ${id}: `, error);
+            setBookingError(`Failed to get booking by movie id ${id}`);
         }
         finally {
             setBookingLoading(false);
@@ -25,8 +42,8 @@ export const useGetBooking = (account_id: number | null) => {
     };
 
     useEffect(() => {
-        getBooking();
-    }, [account_id]);
+        criteria === "account_id" ? getBookingAccount() : getBookingMovie();
+    }, [criteria, id]);
 
     return { bookingData, bookingLoading, bookingError };
 }

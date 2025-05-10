@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { useGetMovie } from "@/hooks/useGetMovie"
 import { IMovie, IMovieDetail } from "@/types/movie"
-import { formatDay } from "@/utils/formatDay"
+import { formatDay } from "@/utils/format"
 import Loader from "./common/loader"
 
 export function MovieCarousel({ type }: { type: string }) {

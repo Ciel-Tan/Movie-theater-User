@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useEffect, useMemo, useState } from "react"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Info } from "lucide-react"
 
@@ -9,40 +9,76 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { SeatMap } from "@/components/seat-map"
+import { useGetMovie } from "@/hooks/useGetMovie"
+import { useGetSeatType } from "@/hooks/useGetSeatType"
+import { useGetBooking } from "@/hooks/useGetBooking"
+import { ISeat } from "@/types/seat"
+import { useAccountContext } from "@/context/accountContext"
+import { useGetAccount } from "@/hooks/useGetAccount"
+import { calculateAge } from "@/utils/calculateAge"
+import { useGetTicket } from "@/hooks/useGetTicket"
+import { formatVND } from "@/utils/format"
 
-export default function BookingPage({ params }: { params: { id: string } }) {
+export default function BookingPage() {
   const router = useRouter()
+  const params = useParams<{ id: string }>()
+  const account_id = useAccountContext()
   const searchParams = useSearchParams()
 
-  const date = searchParams.get("date") || "2025-05-15"
-  const time = searchParams.get("time") || "19:00"
-  const auditorium = searchParams.get("auditorium") || "1"
+  const date = searchParams.get("date")
+  const time = searchParams.get("time")
+  const cinema = searchParams.get("cinema")
 
   const [currentStep, setCurrentStep] = useState(1)
-  const [selectedSeats, setSelectedSeats] = useState<string[]>([])
+  const [selectedSeats, setSelectedSeats] = useState<ISeat[]>([])
 
-  // Mock movie data - would come from API
-  const movie = {
-    id: params.id,
-    title: "The Adventure Begins",
-    image: "/placeholder.svg?height=600&width=400&text=Movie+Poster",
-    duration: 125,
-  }
+  const { movieDetail } = useGetMovie(parseInt(params.id!))
+  const { bookingData } = useGetBooking("movie_id", parseInt(params.id!))
+  const { seatTypesData } = useGetSeatType()
+  const { accountData } = useGetAccount(account_id)
+  const { ticketsData } = useGetTicket()
 
-  // Pricing
-  const ticketPrice = 12.99
-  const bookingFee = 1.5
+  const filteredSeatOccupied = useMemo(() => {
+    return bookingData
+      .filter(booking => 
+        booking.showtime.cinema.cinema_name === cinema && 
+        booking.showtime.show_datetime === `${date} ${time}:00.000000`)
+      .map(booking => booking.booking_seat)
+      .flat()
+  }, [bookingData])
+
+  const ageBasedTicketMap: { [key: string]: { maxAge: number } } = {
+    children: { maxAge: 15 },
+    under18: { maxAge: 18 },
+    under22: { maxAge: 22 },
+    adult: { maxAge: Infinity },
+  };
+
+  const ticketPrice = useMemo(() => {
+    const userAge = calculateAge(accountData?.birthday)
+
+    for (const ticketName in ageBasedTicketMap) {
+      if (userAge <= ageBasedTicketMap[ticketName].maxAge) {
+        const foundTicket = ticketsData.find(ticket => ticket.ticket_name === ticketName);
+        return foundTicket?.ticket_price || 0;
+      }
+    }
+    
+    return 0
+  }, [accountData])
+
+  const bookingFee = ticketPrice * 0.1
   const total = selectedSeats.length * ticketPrice + bookingFee
 
-  const handleSeatSelection = (seats: string[]) => {
+  const handleSeatSelection = (seats: ISeat[]) => {
     setSelectedSeats(seats)
   }
 
   const handleContinue = () => {
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1)
-    } else {
-      // Handle payment completion and redirect to confirmation
+    }
+    else {
       router.push(`/booking/${params.id}/confirmation?seats=${selectedSeats.join(",")}`)
     }
   }
@@ -79,26 +115,37 @@ export default function BookingPage({ params }: { params: { id: string } }) {
                 <CardHeader>
                   <CardTitle>Select Your Seats</CardTitle>
                   <CardDescription>
-                    {movie.title} • {date} • {time} • Auditorium {auditorium}
+                    {movieDetail?.title} • {date} • {time} • Cinema {cinema}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="mb-4 flex items-center justify-center gap-6 text-sm">
                     <div className="flex items-center gap-2">
-                      <div className="h-4 w-4 rounded-sm border"></div>
-                      <span>Available</span>
-                    </div>
-                    <div className="flex items-center gap-2">
                       <div className="h-4 w-4 rounded-sm bg-primary"></div>
                       <span>Selected</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-4 w-4 rounded-sm bg-muted"></div>
-                      <span>Taken</span>
-                    </div>
+                    {seatTypesData?.map((seatType) => (
+                      <div key={seatType.seat_type_id} className="flex items-center gap-2">
+                        <div
+                          className={`
+                            ${seatType.seat_type_id === 5 ? "w-10" : "w-4"} h-4 rounded-sm border border-2 border-solid
+                            ${
+                              seatType.seat_type_id === 1 ? "bg-[#E2DDD5] border-none" :
+                              seatType.seat_type_id === 2 ? "bg-red-500 border-none" :
+                              seatType.seat_type_id === 3 ? "border-green-500" :
+                              seatType.seat_type_id === 4 ? "border-yellow-500" : "border-pink-500"
+                            }
+                          `}
+                        />
+                        <span>{seatType.seat_type_name}</span>
+                      </div>
+                    ))}
                   </div>
 
-                  <SeatMap onSeatSelect={handleSeatSelection} />
+                  <SeatMap
+                    onSeatSelect={handleSeatSelection}
+                    seatOccupied={filteredSeatOccupied}
+                  />
 
                   <div className="mt-4 text-center text-sm text-muted-foreground">
                     <Info className="h-4 w-4 inline mr-1" />
@@ -126,17 +173,17 @@ export default function BookingPage({ params }: { params: { id: string } }) {
                   <div className="space-y-6">
                     <div className="flex items-start gap-4">
                       <img
-                        src={movie.image || "/placeholder.svg"}
-                        alt={movie.title}
+                        src={movieDetail?.poster_image || "/placeholder.svg"}
+                        alt={movieDetail?.title}
                         className="w-24 h-36 object-cover rounded"
                       />
                       <div>
-                        <h3 className="font-bold text-lg">{movie.title}</h3>
+                        <h3 className="font-bold text-lg">{movieDetail?.title}</h3>
                         <div className="text-sm text-muted-foreground space-y-1">
                           <p>Date: {date}</p>
                           <p>Time: {time}</p>
-                          <p>Auditorium: {auditorium}</p>
-                          <p>Duration: {movie.duration} minutes</p>
+                          <p>Cinema: {cinema}</p>
+                          <p>Duration: {movieDetail?.run_time} minutes</p>
                         </div>
                       </div>
                     </div>
@@ -145,8 +192,8 @@ export default function BookingPage({ params }: { params: { id: string } }) {
                       <h3 className="font-medium mb-2">Selected Seats</h3>
                       <div className="flex flex-wrap gap-2">
                         {selectedSeats.map((seat) => (
-                          <div key={seat} className="bg-muted px-2 py-1 rounded text-sm">
-                            {seat}
+                          <div key={seat.seat_id} className="bg-muted px-2 py-1 rounded text-sm">
+                            {seat.seat_location}
                           </div>
                         ))}
                       </div>
@@ -157,17 +204,17 @@ export default function BookingPage({ params }: { params: { id: string } }) {
                       <div className="space-y-1 text-sm">
                         <div className="flex justify-between">
                           <span>
-                            Tickets ({selectedSeats.length} × ${ticketPrice.toFixed(2)})
+                            Tickets ({selectedSeats.length} × {formatVND(ticketPrice)})
                           </span>
-                          <span>${(selectedSeats.length * ticketPrice).toFixed(2)}</span>
+                          <span>{formatVND(selectedSeats.length * ticketPrice)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Booking Fee</span>
-                          <span>${bookingFee.toFixed(2)}</span>
+                          <span>{formatVND(bookingFee)}</span>
                         </div>
                         <div className="flex justify-between font-bold pt-2 border-t mt-2">
                           <span>Total</span>
-                          <span>${total.toFixed(2)}</span>
+                          <span>{formatVND(total)}</span>
                         </div>
                       </div>
                     </div>
@@ -213,7 +260,7 @@ export default function BookingPage({ params }: { params: { id: string } }) {
                       <div className="rounded-lg border p-4">
                         <div className="flex justify-between mb-2">
                           <span>
-                            {selectedSeats.length} tickets for {movie.title}
+                            {selectedSeats.length} tickets for {movieDetail?.title}
                           </span>
                           <span>${(selectedSeats.length * ticketPrice).toFixed(2)}</span>
                         </div>
@@ -249,12 +296,12 @@ export default function BookingPage({ params }: { params: { id: string } }) {
               <div className="space-y-4">
                 <div className="flex items-start gap-4">
                   <img
-                    src={movie.image || "/placeholder.svg"}
-                    alt={movie.title}
+                    src={movieDetail?.poster_image || "/placeholder.svg"}
+                    alt={movieDetail?.title}
                     className="w-16 h-24 object-cover rounded"
                   />
                   <div>
-                    <h3 className="font-bold">{movie.title}</h3>
+                    <h3 className="font-bold">{movieDetail?.title}</h3>
                     <p className="text-sm text-muted-foreground">{date}</p>
                     <p className="text-sm text-muted-foreground">{time}</p>
                   </div>
@@ -265,8 +312,8 @@ export default function BookingPage({ params }: { params: { id: string } }) {
                     <h4 className="text-sm font-medium mb-1">Selected Seats</h4>
                     <div className="flex flex-wrap gap-1">
                       {selectedSeats.map((seat) => (
-                        <div key={seat} className="bg-muted px-2 py-0.5 rounded text-xs">
-                          {seat}
+                        <div key={seat.seat_id} className="bg-muted px-2 py-0.5 rounded text-xs">
+                          {seat.seat_location}
                         </div>
                       ))}
                     </div>
@@ -275,16 +322,16 @@ export default function BookingPage({ params }: { params: { id: string } }) {
 
                 <div className="pt-4 border-t">
                   <div className="flex justify-between text-sm">
-                    <span>Subtotal</span>
-                    <span>${(selectedSeats.length * ticketPrice).toFixed(2)}</span>
+                    <span>Price</span>
+                    <span>{formatVND(selectedSeats.length * ticketPrice)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Booking Fee</span>
-                    <span>${bookingFee.toFixed(2)}</span>
+                    <span>{formatVND(bookingFee)}</span>
                   </div>
                   <div className="flex justify-between font-bold mt-2">
                     <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>{formatVND(total)}</span>
                   </div>
                 </div>
               </div>

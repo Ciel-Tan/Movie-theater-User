@@ -25,9 +25,8 @@ export default function AccountPage() {
   const { accountData, loading, error } = useGetAccount(account_id)
 
   const [account, setAccount] = useState<IAccount>({} as IAccount)
-  const { bookingData, bookingLoading, bookingError } = useGetBooking(account_id)
+  const { bookingData, bookingLoading, bookingError } = useGetBooking("account_id", account_id)
   const bookings: IBooking[] = bookingData
-  console.log(bookings)
 
   useEffect(() => {
     setAccount(accountData as IAccount)
@@ -91,7 +90,7 @@ export default function AccountPage() {
                     <Label htmlFor="full_name">Full Name</Label>
                     <Input
                       id="name"
-                      defaultValue={account.full_name}
+                      defaultValue={account?.full_name}
                       onChange={(e) => setAccount({ ...account, full_name: e.target.value })}
                       disabled={!isEditing}
                     />
@@ -106,7 +105,7 @@ export default function AccountPage() {
                           className="w-4 h-4"
                           id="male"
                           defaultValue="true"
-                          defaultChecked={account.gender}
+                          defaultChecked={account?.gender}
                           onChange={(e) => setAccount({ ...account, gender: e.target.checked })}
                           disabled={!isEditing}
                         />
@@ -119,7 +118,7 @@ export default function AccountPage() {
                           className="w-4 h-4"
                           id="female"
                           defaultValue="false"
-                          defaultChecked={!account.gender}
+                          defaultChecked={!account?.gender}
                           onChange={(e) => setAccount({ ...account, gender: e.target.checked })}
                           disabled={!isEditing}
                         />
@@ -132,7 +131,7 @@ export default function AccountPage() {
                     <Input
                       id="email"
                       type="email"
-                      defaultValue={account.email}
+                      defaultValue={account?.email}
                       onChange={(e) => setAccount({ ...account, email: e.target.value })}
                       disabled={!isEditing}
                     />
@@ -141,7 +140,7 @@ export default function AccountPage() {
                     <Label htmlFor="age">Age</Label>
                     <Input
                       id="phone"
-                      defaultValue={calculateAge(account.birthday)}
+                      defaultValue={calculateAge(account?.birthday)}
                       disabled
                     />
                   </div>
@@ -149,7 +148,7 @@ export default function AccountPage() {
                     <Label htmlFor="_number">Phone Number</Label>
                     <Input
                       id="phone"
-                      defaultValue={account.phone_number}
+                      defaultValue={account?.phone_number}
                       onChange={(e) => setAccount({ ...account, phone_number: e.target.value })}
                       disabled={!isEditing}
                     />
@@ -158,7 +157,7 @@ export default function AccountPage() {
                     <Label htmlFor="id_number">Id Number</Label>
                     <Input
                       id="phone"
-                      defaultValue={account.id_number}
+                      defaultValue={account?.id_number}
                       onChange={(e) => setAccount({ ...account, id_number: e.target.value })}
                       disabled={!isEditing}
                     />

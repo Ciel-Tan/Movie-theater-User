@@ -6,7 +6,7 @@ import { ShowtimeSelector } from "@/components/showtime-selector"
 import { useGetMovie } from "@/hooks/useGetMovie"
 import { IMovieDetail } from "@/types/movie"
 import { useParams } from "next/navigation"
-import { formatDay } from "@/utils/formatDay"
+import { formatDay } from "@/utils/format"
 import Loader from "@/components/common/loader"
 
 export default function MovieDetail() {

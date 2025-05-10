@@ -5,6 +5,7 @@ import { Button } from "../ui/button";
 import { LogOut, Search, User } from "lucide-react";
 import { Input } from "../ui/input";
 import { getCookieToken, removeCookieToken } from "@/utils/cookie";
+import { useState } from "react";
 
 const Header = () => {
     const token = getCookieToken();
@@ -14,6 +15,15 @@ const Header = () => {
         window.location.href = "/login";
     };
 
+    const [selectedLink, setSelectedLink] = useState<string>("/");
+
+    const Links = [
+        { name: "Home", href: "/" },
+        { name: "Now Showing", href: "/now-showing" },
+        { name: "Coming Soon", href: "/coming-soon" },
+        { name: "Schedule", href: "/schedule" },
+    ]
+
     return (
         <header className="sticky px-15 top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-16 items-center justify-between">
@@ -21,27 +31,21 @@ const Header = () => {
                     <span className="text-xl font-bold">CielTanMovies</span>
                 </Link>
                 <nav className="mx-6 flex items-center space-x-4 lg:space-x-6 border-l-2 pl-6">
-                    <Link href="/" className="text-sm font-medium transition-colors hover:text-primary">
-                        Home
-                    </Link>
-                    <Link
-                        href="/now-showing"
-                        className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-                    >
-                        Now Showing
-                    </Link>
-                    <Link
-                        href="/coming-soon"
-                        className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-                    >
-                        Coming Soon
-                    </Link>
-                    <Link
-                        href="/schedule"
-                        className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-                    >
-                        Schedule
-                    </Link>
+                    {Links.map((link) => (
+                        <Link
+                            key={link.name}
+                            href={link.href}
+                            className={`
+                                text-sm font-medium transition-colors hover:text-primary
+                                ${selectedLink === link.href
+                                    ? "text-primary"
+                                    : "text-muted-foreground"}
+                            `}
+                            onClick={() => setSelectedLink(link.href)}
+                        >
+                            {link.name}
+                        </Link>
+                    ))}
                 </nav>
                 <div className="ml-auto flex items-center gap-4">
                     <div className="relative hidden md:block">
