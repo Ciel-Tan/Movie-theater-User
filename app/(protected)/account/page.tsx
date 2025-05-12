@@ -17,6 +17,7 @@ import { calculateAge } from "@/utils/calculateAge"
 import { useGetBooking } from "@/hooks/useGetBooking"
 import { IBooking } from "@/types/booking"
 import Loader from "@/components/common/loader"
+import { useActionBooking } from "@/hooks/useActionBooking"
 
 export default function AccountPage() {
   const [isEditing, setIsEditing] = useState(false)
@@ -27,6 +28,8 @@ export default function AccountPage() {
   const [account, setAccount] = useState<IAccount>({} as IAccount)
   const { bookingData, bookingLoading, bookingError } = useGetBooking("account_id", account_id)
   const bookings: IBooking[] = bookingData
+
+  const { cancelBookingMovie } = useActionBooking()
 
   useEffect(() => {
     setAccount(accountData as IAccount)
@@ -40,11 +43,16 @@ export default function AccountPage() {
   if (error || bookingError) return <div>Error: {error}</div>
 
   const getUpcomingBookings = (): IBooking[] => {
-    return bookings.filter((b: IBooking) => new Date(b.booking_datetime).getTime() > Date.now())
+    return bookings.filter((b: IBooking) => new Date(b.showtime.show_datetime).getTime() > Date.now())
   }
 
   const getPastBookings = (): IBooking[] => {
-    return bookings.filter((b: IBooking) => new Date(b.booking_datetime).getTime() < Date.now())
+    return bookings.filter((b: IBooking) => new Date(b.showtime.show_datetime).getTime() < Date.now())
+  }
+
+  const handleCancelBooking = async (booking_id: number) => {
+    await cancelBookingMovie(booking_id)
+    window.location.reload()
   }
 
   return (
@@ -221,7 +229,11 @@ export default function AccountPage() {
                                 <Button size="sm" variant="outline" asChild>
                                   <Link href={`/booking/${booking.booking_id}/confirmation`}>View Ticket</Link>
                                 </Button>
-                                <Button size="sm" variant="outline">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleCancelBooking(booking.booking_id)}
+                                >
                                   Cancel Booking
                                 </Button>
                               </div>
@@ -260,7 +272,7 @@ export default function AccountPage() {
                                     {booking.showtime.show_datetime.slice(0, 10)} • {booking.showtime.show_datetime.slice(11, 16)}
                                   </p>
                                   <div className="flex gap-1 mt-1">
-                                    {booking.booking_seat.map((seat) => (
+                                    {booking.booking_seat?.map((seat) => (
                                       <span key={seat.seat_id} className="bg-muted px-2 py-0.5 rounded text-xs">
                                         {seat.seat_location}
                                       </span>

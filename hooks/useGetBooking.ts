@@ -42,7 +42,10 @@ export const useGetBooking = (criteria: string | null, id: number | null) => {
     };
 
     useEffect(() => {
-        criteria === "account_id" ? getBookingAccount() : getBookingMovie();
+        if (criteria === null || id === null) return
+        
+        if (criteria === "account_id") getBookingAccount();
+        else if (criteria === "movie_id") getBookingMovie();
     }, [criteria, id]);
 
     return { bookingData, bookingLoading, bookingError };

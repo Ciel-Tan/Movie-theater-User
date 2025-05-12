@@ -2,7 +2,7 @@ import { api } from "@/utils/axios";
 
 export const getAllSeats = async () => {
     try {
-        const { data: seats } = await api.get("/api/seats/getAll");
+        const { data: seats } = await api.get("/api/public/seats/getAll");
         return seats;
     }
     catch (error) {

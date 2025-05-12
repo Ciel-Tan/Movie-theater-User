@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { cn } from "@/lib/utils"
 import { useGetSeat } from "@/hooks/useGetSeat"
 import { ISeat } from "@/types/seat"
+import Loader from "./common/loader"
 
 interface SeatMapProps {
   onSeatSelect: (seats: ISeat[]) => void
@@ -11,12 +12,12 @@ interface SeatMapProps {
 }
 
 export function SeatMap({ onSeatSelect, seatOccupied }: SeatMapProps) {
-  const { seatsData } = useGetSeat()
+  const { seatsData, loading } = useGetSeat()
   const { rows, seatsPerRow } = useMemo(() => {
     const counts: Record<string, number> = {}
 
     for (const seat of seatsData || []) {
-      const match = seat.seat_location.match(/^[A-Za-z]+/)
+      const match = seat?.seat_location.match(/^[A-Za-z]+/)
       if (match) {
         const row = match[0]
         counts[row] = (counts[row] || 0) + 1
@@ -30,15 +31,15 @@ export function SeatMap({ onSeatSelect, seatOccupied }: SeatMapProps) {
   const [selectedSeats, setSelectedSeats] = useState<ISeat[]>([])
 
   const toggleSeat = (seat: string) => {
-    if (seatOccupied.some((s) => s.seat_location === seat)) return
+    if (seatOccupied.some((s) => s?.seat_location === seat)) return
     
     setSelectedSeats((prev) => {
       const newSelection = prev
-        .map((s) => s.seat_location).includes(seat)
-          ? prev.filter((s) => s.seat_location !== seat)
+        .map((s) => s?.seat_location).includes(seat)
+          ? prev.filter((s) => s?.seat_location !== seat)
           : [
             ...prev,
-            seatsData.find((s) => s.seat_location === seat)!
+            seatsData.find((s) => s?.seat_location === seat)!
           ]
 
       return newSelection.slice(0, 8)
@@ -51,19 +52,27 @@ export function SeatMap({ onSeatSelect, seatOccupied }: SeatMapProps) {
 
 
   const getSeatStatus = (seat: string) => {
-    if (seatOccupied.find((s) => s.seat_location === seat)) return "Occupied"
-    if (selectedSeats.map((s) => s.seat_location).includes(seat)) return "Selected"
+    if (seatOccupied.find((s) => s?.seat_location === seat)) return "Occupied"
+    if (selectedSeats.map((s) => s?.seat_location).includes(seat)) return "Selected"
     return "Available"
   }
 
   const getSeatType = (seat: string) => {
-    const seatData = seatsData.find((s) => s.seat_location === seat)
+    const seatData = seatsData.find((s) => s?.seat_location === seat)
     const seatType = seatData?.seat_type.seat_type_name
 
     if (seatType === 'Standard') return 'border-green-500'
     else if (seatType === 'VIP') return 'border-yellow-500'
     else if (seatType === 'Couple') return 'border-pink-500'
     else 'bg-red-500 border-none'
+  }
+
+  if (loading) {
+    return (
+      <div className="h-[400px] flex items-center justify-center">
+        <Loader color="black" />
+      </div>
+    )
   }
 
   return (

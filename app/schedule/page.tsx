@@ -14,11 +14,15 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useGetMovie } from "@/hooks/useGetMovie"
 import { IMovieDetail } from "@/types/movie"
 import { useGetCinema } from "@/hooks/useGetCinema"
+import { useGetSeat } from "@/hooks/useGetSeat"
+import { useGetBooking } from "@/hooks/useGetBooking"
+import { MovieScheduleCard } from "@/components/movie-schedule-card"
 
 export default function SchedulePage() {
-  const { moviesData, loading, error } = useGetMovie(0)
+  const { moviesData } = useGetMovie(0)
   const { cinemasData } = useGetCinema()
-  // Generate dates for the next 7 days
+  const { seatsData } = useGetSeat()
+  
   const dates = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => {
       const date = addDays(new Date(), i)
@@ -46,18 +50,21 @@ export default function SchedulePage() {
   ]
 
   const getSeatStatus = (availableSeats: number) => {
-    if (availableSeats < 20) return { status: "Limited", color: "bg-orange-500" }
-    if (availableSeats < 50) return { status: "Available", color: "bg-green-500" }
+    if (availableSeats < 40) return { status: "Limited", color: "bg-orange-500" }
+    if (availableSeats < 80) return { status: "Available", color: "bg-green-500" }
     return { status: "Many", color: "bg-green-700" }
   }
 
   const filteredMovies= useMemo(() => {
     if (!moviesData || !selectedCinema) return []
 
+    const now = Date.now()
+
     return moviesData?.map((movie) => {
       const filteredShowtime = movie.showtime?.filter((showtime) =>
         showtime.show_datetime.startsWith(selectedDate) &&
-        showtime.cinema.cinema_name === selectedCinema
+        showtime.cinema.cinema_name === selectedCinema &&
+        new Date(showtime.show_datetime).getTime() >= now
       )
 
       if (filteredShowtime && filteredShowtime.length > 0) {
@@ -120,74 +127,11 @@ export default function SchedulePage() {
 
       <div className="space-y-6">
         {filteredMovies?.map((movie: IMovieDetail) => (
-          <Card key={movie.movie_id} className="overflow-hidden">
-            <CardContent className="p-0">
-              <div className="flex flex-col md:flex-row">
-                <div className="w-full md:w-48 shrink-0">
-                  <img
-                    src={movie.poster_image || "/placeholder.svg"}
-                    alt={movie.title}
-                    className="h-full w-full object-cover md:h-full"
-                  />
-                </div>
-                <div className="p-6 flex-1">
-                  <div className="mb-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h2 className="text-xl font-bold">{movie.title}</h2>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-4 w-4" />
-                            <span>{movie.run_time} min</span>
-                          </div>
-                          <div>{movie.genres.map((genre) => genre.genre_name).join(", ")}</div>
-                        </div>
-                      </div>
-                      <Link href={`/movies/${movie.movie_id}`}>
-                        <Button variant="outline" size="sm">
-                          Details
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-
-                  <Separator className="my-4" />
-
-                  <div>
-                    <h3 className="font-medium mb-3">Showtimes</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                      {movie.showtime.filter((showtime) => showtime.cinema.cinema_name === selectedCinema && showtime.show_datetime.startsWith(selectedDate)).map((showtime, index) => {
-                        // const seatStatus = getSeatStatus(showtime.availableSeats)
-                        const displayShowtime = showtime.show_datetime.slice(11, 16)
-                        return (
-                          <TooltipProvider key={index}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="relative" asChild>
-                                  <Link
-                                    href={`/booking/${movie.movie_id}?date=${selectedDate}&time=${showtime.show_datetime.slice(11, 16)}&cinema=${showtime.cinema.cinema_name}`}
-                                  >
-                                    <span>{displayShowtime}</span>
-                                    {/* <span className={`absolute bottom-0 left-0 right-0 h-1 ${seatStatus.color}`}></span> */}
-                                  </Link>
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <div className="text-xs">
-                                  <p>Room {showtime.room.room_name}</p>
-                                  {/* <p>{showtime.availableSeats} seats available</p> */}
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <MovieScheduleCard
+            key={movie.movie_id}
+            movie={movie}
+            getSeatStatus={getSeatStatus}
+          />
         ))}
 
         {filteredMovies?.length === 0 && (

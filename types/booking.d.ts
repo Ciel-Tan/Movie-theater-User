@@ -1,5 +1,6 @@
 import { IAccount } from "./account"
 import { IMovieDetailWithShowtime } from "./movie"
+import { ISeat } from "./seat"
 
 export interface ITicket {
     ticket_id: number
@@ -19,14 +20,5 @@ export interface IBooking {
             ticket: ITicket
         }
     ]
-    booking_seat: [
-        {
-            seat_id: number
-            seat_location: string
-            seat_type: {
-                seat_type_id: number
-                seat_type_name: string
-            }
-        }
-    ]
+    booking_seat: ISeat[]
 }

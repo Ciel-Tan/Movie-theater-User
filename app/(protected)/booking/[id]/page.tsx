@@ -18,6 +18,10 @@ import { useGetAccount } from "@/hooks/useGetAccount"
 import { calculateAge } from "@/utils/calculateAge"
 import { useGetTicket } from "@/hooks/useGetTicket"
 import { formatVND } from "@/utils/format"
+import { IBooking } from "@/types/booking"
+import { useGetShowtime } from "@/hooks/useGetShowtime"
+import { useActionBooking } from "@/hooks/useActionBooking"
+import Loader from "@/components/common/loader"
 
 export default function BookingPage() {
   const router = useRouter()
@@ -25,18 +29,81 @@ export default function BookingPage() {
   const account_id = useAccountContext()
   const searchParams = useSearchParams()
 
-  const date = searchParams.get("date")
-  const time = searchParams.get("time")
-  const cinema = searchParams.get("cinema")
+  const showtime_id = searchParams.get("showtime_id")
+  const { showtimeData } = useGetShowtime(parseInt(showtime_id!))
+
+  const date = showtimeData?.show_datetime.slice(0, 10)
+  const time = showtimeData?.show_datetime.slice(11, 16)
+  const cinema = showtimeData?.cinema.cinema_name
 
   const [currentStep, setCurrentStep] = useState(1)
   const [selectedSeats, setSelectedSeats] = useState<ISeat[]>([])
 
   const { movieDetail } = useGetMovie(parseInt(params.id!))
-  const { bookingData } = useGetBooking("movie_id", parseInt(params.id!))
-  const { seatTypesData } = useGetSeatType()
   const { accountData } = useGetAccount(account_id)
+  const { seatTypesData } = useGetSeatType()
   const { ticketsData } = useGetTicket()
+  const { bookingData } = useGetBooking("movie_id", parseInt(params.id!))
+
+  const { createBookingMovie, bookingLoading, bookingError } = useActionBooking()
+
+  const ageBasedTicketMap: { [key: string]: { maxAge: number } } = {
+    children: { maxAge: 15 },
+    under18: { maxAge: 18 },
+    under22: { maxAge: 22 },
+    adult: { maxAge: Infinity },
+  };
+
+  const getTicket = useMemo(() => {
+    const userAge = calculateAge(accountData?.birthday)
+
+    for (const ticketName in ageBasedTicketMap) {
+      if (userAge <= ageBasedTicketMap[ticketName].maxAge) {
+        const foundTicket = ticketsData.find(ticket => ticket.ticket_name === ticketName);
+        return foundTicket
+      }
+    }
+  }, [accountData]);
+
+  const ticketPrice = getTicket?.ticket_price
+  const bookingFee = ticketPrice! * 0.1
+  const discountMembership = useMemo(() => {
+    return (100 - (accountData?.membership_type.discount_rate || 0)) / 100
+  }, [accountData])
+  const price = useMemo(() => {
+    const standardSeatCount = selectedSeats.filter(seat => seat.seat_type.seat_type_name === "Standard").length
+    const vipSeatCount = selectedSeats.filter(seat => seat.seat_type.seat_type_name === "VIP").length
+    const coupleSeatCount = selectedSeats.filter(seat => seat.seat_type.seat_type_name === "Couple").length
+    
+    return ticketPrice! * (standardSeatCount + vipSeatCount * 1.1 + coupleSeatCount * 2.2) * discountMembership
+  }, [selectedSeats, ticketPrice])
+
+  const total = price + bookingFee
+
+  const [booking, setBooking] = useState<IBooking>()
+
+  useEffect(() => {
+    if (accountData && showtimeData && getTicket && selectedSeats) {
+      setBooking({
+        booking_id: 0,
+        booking_datetime: new Date().toISOString(),
+        booking_fee: bookingFee,
+        account: accountData,
+        showtime: showtimeData,
+        booking_ticket: [
+          {
+            ticket_quantity: selectedSeats.length,
+            ticket: getTicket
+          }
+        ],
+        booking_seat: selectedSeats
+      });
+    }
+  }, [accountData, getTicket, selectedSeats, showtimeData])
+
+  useEffect(() => {
+    console.log(booking)
+  }, [booking])
 
   const filteredSeatOccupied = useMemo(() => {
     return bookingData
@@ -47,29 +114,6 @@ export default function BookingPage() {
       .flat()
   }, [bookingData])
 
-  const ageBasedTicketMap: { [key: string]: { maxAge: number } } = {
-    children: { maxAge: 15 },
-    under18: { maxAge: 18 },
-    under22: { maxAge: 22 },
-    adult: { maxAge: Infinity },
-  };
-
-  const ticketPrice = useMemo(() => {
-    const userAge = calculateAge(accountData?.birthday)
-
-    for (const ticketName in ageBasedTicketMap) {
-      if (userAge <= ageBasedTicketMap[ticketName].maxAge) {
-        const foundTicket = ticketsData.find(ticket => ticket.ticket_name === ticketName);
-        return foundTicket?.ticket_price || 0;
-      }
-    }
-    
-    return 0
-  }, [accountData])
-
-  const bookingFee = ticketPrice * 0.1
-  const total = selectedSeats.length * ticketPrice + bookingFee
-
   const handleSeatSelection = (seats: ISeat[]) => {
     setSelectedSeats(seats)
   }
@@ -79,7 +123,24 @@ export default function BookingPage() {
       setCurrentStep(currentStep + 1)
     }
     else {
-      router.push(`/booking/${params.id}/confirmation?seats=${selectedSeats.join(",")}`)
+      router.push(`
+        /booking/${params.id}
+        /confirmation?seats=${selectedSeats.map(seat => seat.seat_location).join(",")}
+        &date=${date}
+        &time=${time}
+        &cinema=${cinema}
+        &total=${total}
+      `)
+    }
+  }
+
+  const handleCreateBooking = async () => {
+    await createBookingMovie(booking!)
+
+    if (bookingError) setCurrentStep(1)
+
+    if (!bookingLoading) {
+      handleContinue()
     }
   }
 
@@ -204,9 +265,9 @@ export default function BookingPage() {
                       <div className="space-y-1 text-sm">
                         <div className="flex justify-between">
                           <span>
-                            Tickets ({selectedSeats.length} × {formatVND(ticketPrice)})
+                            Tickets ({selectedSeats.length} × {formatVND(ticketPrice!)})
                           </span>
-                          <span>{formatVND(selectedSeats.length * ticketPrice)}</span>
+                          <span>{formatVND(price)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Booking Fee</span>
@@ -262,15 +323,15 @@ export default function BookingPage() {
                           <span>
                             {selectedSeats.length} tickets for {movieDetail?.title}
                           </span>
-                          <span>${(selectedSeats.length * ticketPrice).toFixed(2)}</span>
+                          <span>{formatVND(price)}</span>
                         </div>
                         <div className="flex justify-between mb-2">
                           <span>Booking Fee</span>
-                          <span>${bookingFee.toFixed(2)}</span>
+                          <span>{formatVND(bookingFee)}</span>
                         </div>
                         <div className="flex justify-between font-bold pt-2 border-t mt-2">
                           <span>Total</span>
-                          <span>${total.toFixed(2)}</span>
+                          <span>{formatVND(total)}</span>
                         </div>
                       </div>
                     </div>
@@ -280,7 +341,9 @@ export default function BookingPage() {
                   <Button variant="outline" onClick={() => setCurrentStep(2)}>
                     Back
                   </Button>
-                  <Button onClick={handleContinue}>Complete Payment</Button>
+                  <Button onClick={handleCreateBooking}>
+                    {bookingLoading ? <Loader /> : "Complete Payment"}
+                  </Button>
                 </CardFooter>
               </Card>
             </TabsContent>
@@ -323,7 +386,7 @@ export default function BookingPage() {
                 <div className="pt-4 border-t">
                   <div className="flex justify-between text-sm">
                     <span>Price</span>
-                    <span>{formatVND(selectedSeats.length * ticketPrice)}</span>
+                    <span>{formatVND(price)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Booking Fee</span>

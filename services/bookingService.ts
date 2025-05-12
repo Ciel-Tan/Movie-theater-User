@@ -1,3 +1,4 @@
+import { IBooking } from "@/types/booking";
 import { api } from "@/utils/axios";
 
 export const getBookingByAccountId = async (account_id: number) => {
@@ -19,5 +20,25 @@ export const getBookingByMovieId = async (movie_id: number) => {
     catch (error) {
         console.error("Error in getBookingByMovieId service:", error);
         return error;
+    }
+};
+
+export const createBooking = async (data: IBooking) => {
+    try {
+        const { data: booking } = await api.post("/api/bookings/create", data);
+        return booking
+    }
+    catch (error) {
+        console.error("Error in createBooking service:", error);
+    }
+};
+
+export const removeBooking = async (id: number) => {
+    try {
+        const { data: booking } = await api.delete(`/api/bookings/${id}`);
+        return booking
+    }
+    catch (error) {
+        console.error("Error in removeBooking service:", error);
     }
 };
