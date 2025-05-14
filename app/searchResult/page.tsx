@@ -1,12 +1,5 @@
 'use client'
 
-import { Clock, Filter, Type } from "lucide-react"
-import Link from "next/link"
-
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useGetMovie } from "@/hooks/useGetMovie"
 import { useSearchParams } from "next/navigation"
 import GridHeader from "@/components/grid-header"
