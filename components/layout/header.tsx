@@ -6,6 +6,7 @@ import { LogOut, Search, User } from "lucide-react";
 import { Input } from "../ui/input";
 import { getCookieToken, removeCookieToken } from "@/utils/cookie";
 import { useState } from "react";
+import { SearchDropdown } from "../search-dropdown";
 
 const Header = () => {
     const token = getCookieToken();
@@ -49,12 +50,7 @@ const Header = () => {
                 </nav>
                 <div className="ml-auto flex items-center gap-4">
                     <div className="relative hidden md:block">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            type="search"
-                            placeholder="Search movies..."
-                            className="w-[200px] pl-8 md:w-[300px] lg:w-[400px]"
-                        />
+                        <SearchDropdown />
                     </div>
                     {token && (
                         <Button variant="outline" size="icon" asChild>

@@ -1,13 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import { CalendarDays, Clock, Star } from "lucide-react"
+import { CalendarDays, Clock, Type } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { useGetMovie } from "@/hooks/useGetMovie"
-import { IMovie, IMovieDetail } from "@/types/movie"
+import { IMovieDetail } from "@/types/movie"
 import { formatDay } from "@/utils/format"
 import Loader from "./common/loader"
 
@@ -33,7 +33,7 @@ export function MovieCarousel({ type }: { type: string }) {
                   />
                   {type === "now-showing" ? (
                     <div className="absolute top-2 right-2 bg-black/70 text-white rounded-md px-2 py-1 flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      <Type className="h-4 w-4 " />
                       <span>{movie.age_rating}</span>
                     </div>
                   ) : (
@@ -41,7 +41,7 @@ export function MovieCarousel({ type }: { type: string }) {
                       <div className="text-white">
                         <div className="flex items-center gap-2 text-sm mb-1">
                           <CalendarDays className="h-4 w-4" />
-                          <span>Coming {formatDay({ date: movie.release_date })}</span>
+                          <span>Coming {formatDay(movie.release_date)}</span>
                         </div>
                       </div>
                     </div>

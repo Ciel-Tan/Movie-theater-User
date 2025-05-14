@@ -1,6 +1,6 @@
 'use client'
 
-import { CalendarDays, Clock, Star } from "lucide-react"
+import { CalendarDays, Clock, Type } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ShowtimeSelector } from "@/components/showtime-selector"
 import { useGetMovie } from "@/hooks/useGetMovie"
@@ -39,8 +39,8 @@ export default function MovieDetail() {
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
-                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                  <span className="font-bold">T{movie?.age_rating}</span>
+                  <Type className="h-4 w-4" />
+                  <span className="font-bold">{movie?.age_rating}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="h-5 w-5" />
@@ -56,7 +56,7 @@ export default function MovieDetail() {
               </div>
               <div className="flex items-center gap-1">
                 <CalendarDays className="h-5 w-5" />
-                <span>Release Date: {formatDay({ date: movie?.release_date })}</span>
+                <span>Release Date: {formatDay(movie?.release_date)}</span>
               </div>
             </div>
           </div>
