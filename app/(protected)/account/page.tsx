@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { CalendarDays, CreditCard, Edit, User } from "lucide-react"
+import { CalendarDays, CircleCheck, CircleX, CreditCard, Edit, User } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,18 +18,20 @@ import { useGetBooking } from "@/hooks/useGetBooking"
 import { IBooking } from "@/types/booking"
 import Loader from "@/components/common/loader"
 import { useActionBooking } from "@/hooks/useActionBooking"
+import { useActionAccount } from "@/hooks/useActionAccount"
+import Modal from "@/components/common/modal"
 
 export default function AccountPage() {
   const [isEditing, setIsEditing] = useState(false)
   
   const account_id = useAccountContext()
   const { accountData, loading, error } = useGetAccount(account_id)
+  const { bookingData, bookingLoading, bookingError } = useGetBooking("account_id", account_id)
+  const { cancelBookingMovie } = useActionBooking()
+  const { updateAccountInfo, actionLoading, actionSuccess, actionError } = useActionAccount()
 
   const [account, setAccount] = useState<IAccount>({} as IAccount)
-  const { bookingData, bookingLoading, bookingError } = useGetBooking("account_id", account_id)
-  const bookings: IBooking[] = bookingData
-
-  const { cancelBookingMovie } = useActionBooking()
+  const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
     setAccount(accountData as IAccount)
@@ -43,16 +45,24 @@ export default function AccountPage() {
   if (error || bookingError) return <div>Error: {error}</div>
 
   const getUpcomingBookings = (): IBooking[] => {
-    return bookings.filter((b: IBooking) => new Date(b.showtime.show_datetime).getTime() > Date.now())
+    return bookingData.filter((b: IBooking) => new Date(b.showtime.show_datetime).getTime() > Date.now())
   }
 
   const getPastBookings = (): IBooking[] => {
-    return bookings.filter((b: IBooking) => new Date(b.showtime.show_datetime).getTime() < Date.now())
+    return bookingData.filter((b: IBooking) => new Date(b.showtime.show_datetime).getTime() < Date.now())
   }
 
   const handleCancelBooking = async (booking_id: number) => {
     await cancelBookingMovie(booking_id)
     window.location.reload()
+  }
+
+  const handleUpdateAccount = async () => {
+    if (account_id === null) return
+    await updateAccountInfo(account_id, account)
+    setAccount(account)
+    setIsEditing(false)
+    setIsOpen(true)
   }
 
   return (
@@ -175,12 +185,47 @@ export default function AccountPage() {
             </CardContent>
             {isEditing && (
               <CardFooter>
-                <Button className="ml-auto">Save Changes</Button>
+                <Button
+                  className="ml-auto"
+                  onClick={handleUpdateAccount}
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? <Loader /> : "Save Changes"}
+                </Button>
               </CardFooter>
             )}
           </Card>
         </TabsContent>
 
+        <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
+          {actionSuccess && (<>
+            <CircleCheck className="h-16 w-16 text-green-500 mx-auto" />
+            <h2 className="text-2xl font-semibold text-center mb-4">Success!</h2>
+            <p className="text-sm text-base text-center mb-4">
+              {actionSuccess}
+            </p>
+            <Button
+              onClick={() => setIsOpen(false)}
+              className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white font-medium px-8 py-2 rounded-full transition-all shadow-md hover:shadow-lg"
+            >
+              Continue
+            </Button>
+          </>)}
+          {actionError && (<>
+            <CircleX className="h-16 w-16 text-red-500 mx-auto" />
+            <h2 className="text-2xl font-semibold text-center mb-4">Error!</h2>
+            <p className="text-sm text-base text-center mb-4">
+              {actionError}
+            </p>
+            <Button
+              onClick={() => setIsOpen(false)}
+              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium px-8 py-2 rounded-full transition-all shadow-md hover:shadow-lg"
+            >
+              Continue
+            </Button>
+          </>)}
+        </Modal>
+        
         <TabsContent value="bookings" className="mt-6">
           <Card>
             <CardHeader>
