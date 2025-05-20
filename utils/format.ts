@@ -19,3 +19,9 @@ export const formatRuntime = (runtime: number) => {
     const minutes = runtime % 60;
     return `${hours}h ${minutes}m`;
 }
+
+export const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = Math.floor(seconds % 60)
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`
+}
