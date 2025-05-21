@@ -11,22 +11,27 @@ import { formatVND } from "@/utils/format"
 import { useGetMovie } from "@/hooks/useGetMovie"
 
 import QRCode from "react-qr-code";
+import { useGetBooking } from "@/hooks/useGetBooking"
 
 export default function ConfirmationPage() {
   const params = useParams<{ id: string }>()
   const searchParams = useSearchParams()
-  const seats = searchParams.get("seats")?.split(",")
-  const date = searchParams.get("date")
-  const time = searchParams.get("time")
-  const cinema = searchParams.get("cinema")
+
+  const booking_id = searchParams.get("booking_id")
   const total = searchParams.get("total")
+  
+  const { bookingDetail } = useGetBooking("booking_id", parseInt(booking_id!))
+  
+  const seats = bookingDetail?.booking_seat?.map((seat) => seat.seat_location)
+  const date = bookingDetail?.showtime?.show_datetime?.slice(0, 10)
+  const time = bookingDetail?.showtime?.show_datetime?.slice(11, 16)
+  const cinema = bookingDetail?.showtime?.cinema?.cinema_name
 
   const { movieDetail } = useGetMovie(parseInt(params.id!))
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const [confirmationNumber, setConfirmationNumber] = useState("")
-  // const [qrCodeValue, setQrCodeValue] = useState("")
 
   useEffect(() => {
     // Generate a random alphanumeric confirmation number
@@ -90,7 +95,7 @@ export default function ConfirmationPage() {
             <img
               src={movieDetail?.poster_image || "/placeholder.svg"}
               alt={movieDetail?.title}
-              className="w-full md:w-32 h-48 object-cover rounded"
+              className="w-32 h-48 object-cover rounded mx-auto md:mx-0 md:w-32"
             />
             <div className="flex-1 space-y-4">
               <div>
@@ -124,12 +129,13 @@ export default function ConfirmationPage() {
           <div className="mt-6 flex justify-center">
             <QRCode
               value={`
-                https://localhost:3001/booking/${params.id}
-                /confirmation?seats=${seats?.join(",")}
-                &date=${date}
-                &time=${time}
-                &cinema=${cinema}
-                &total=${total}
+                http://localhost:3001/bookingResult?poster=${encodeURIComponent(movieDetail?.poster_image || "")}
+                &title=${encodeURIComponent(movieDetail?.title || "")}
+                &seats=${encodeURIComponent(seats?.join(",") || "")}
+                &date=${encodeURIComponent(date || "")}
+                &time=${encodeURIComponent(time || "")}
+                &cinema=${encodeURIComponent(cinema || "")}
+                &total=${encodeURIComponent(total || "")}
               `}
               size={256}               // px
               level="M"                // error correction level
@@ -154,7 +160,7 @@ export default function ConfirmationPage() {
           <Link href="/">Return to Homepage</Link>
         </Button>
         <Button variant="outline" asChild>
-          <Link href="/account/bookings">View My Bookings</Link>
+          <Link href="/account">View My Bookings</Link>
         </Button>
       </div>
     </div>

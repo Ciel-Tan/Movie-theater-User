@@ -1,27 +1,20 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import Link from "next/link"
 import { format, addDays } from "date-fns"
-import { CalendarDays, Clock, Filter, Info } from "lucide-react"
+import { CalendarDays, Filter, Info } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useGetMovie } from "@/hooks/useGetMovie"
 import { IMovieDetail } from "@/types/movie"
 import { useGetCinema } from "@/hooks/useGetCinema"
-import { useGetSeat } from "@/hooks/useGetSeat"
-import { useGetBooking } from "@/hooks/useGetBooking"
 import { MovieScheduleCard } from "@/components/movie-schedule-card"
 
 export default function SchedulePage() {
   const { moviesData } = useGetMovie(0)
   const { cinemasData } = useGetCinema()
-  const { seatsData } = useGetSeat()
   
   const dates = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => {

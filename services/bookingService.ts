@@ -1,6 +1,17 @@
 import { IBooking } from "@/types/booking";
 import { api } from "@/utils/axios";
 
+export const getBookingByBookingId = async (booking_id: number) => {
+    try {
+        const { data: booking } = await api.get(`/api/bookings/${booking_id}`);
+        return booking;
+    }
+    catch (error) {
+        console.error("Error in getBookingByBookingId service:", error);
+        return error;
+    }
+};
+
 export const getBookingByAccountId = async (account_id: number) => {
     try {
         const { data: booking } = await api.get(`/api/bookings/getByAccountId/${account_id}`);

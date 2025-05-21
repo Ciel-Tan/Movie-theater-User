@@ -32,9 +32,9 @@ export default function BookingPage() {
   const showtime_id = searchParams.get("showtime_id")
   const { showtimeData } = useGetShowtime(parseInt(showtime_id!))
 
-  const date = showtimeData?.show_datetime.slice(0, 10)
-  const time = showtimeData?.show_datetime.slice(11, 16)
-  const cinema = showtimeData?.cinema.cinema_name
+  const date = showtimeData?.show_datetime?.slice(0, 10)
+  const time = showtimeData?.show_datetime?.slice(11, 16)
+  const cinema = showtimeData?.cinema?.cinema_name
 
   const [currentStep, setCurrentStep] = useState(1)
   const [selectedSeats, setSelectedSeats] = useState<ISeat[]>([])
@@ -101,10 +101,6 @@ export default function BookingPage() {
     }
   }, [accountData, getTicket, selectedSeats, showtimeData])
 
-  useEffect(() => {
-    console.log(booking)
-  }, [booking])
-
   const filteredSeatOccupied = useMemo(() => {
     return bookingData
       .filter(booking => 
@@ -118,29 +114,22 @@ export default function BookingPage() {
     setSelectedSeats(seats)
   }
 
-  const handleContinue = () => {
+  const handleContinue = (booking_id?: number) => {
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1)
     }
     else {
-      router.push(`
-        /booking/${params.id}
-        /confirmation?seats=${selectedSeats.map(seat => seat.seat_location).join(",")}
-        &date=${date}
-        &time=${time}
-        &cinema=${cinema}
-        &total=${total}
-      `)
+      router.push(`/booking/${params.id}/confirmation?booking_id=${booking_id}&total=${total}`)
     }
   }
 
   const handleCreateBooking = async () => {
-    await createBookingMovie(booking!)
+    const bookingResult = await createBookingMovie(booking!)
 
     if (bookingError) setCurrentStep(1)
 
     if (!bookingLoading) {
-      handleContinue()
+      handleContinue(bookingResult.booking_id)
     }
   }
 
@@ -217,7 +206,7 @@ export default function BookingPage() {
                   <Button variant="outline" asChild>
                     <Link href={`/movies/${params.id}`}>Cancel</Link>
                   </Button>
-                  <Button onClick={handleContinue} disabled={selectedSeats.length === 0}>
+                  <Button onClick={() => handleContinue()} disabled={selectedSeats.length === 0}>
                     Continue to Review
                   </Button>
                 </CardFooter>
@@ -285,7 +274,7 @@ export default function BookingPage() {
                   <Button variant="outline" onClick={() => setCurrentStep(1)}>
                     Back
                   </Button>
-                  <Button onClick={handleContinue}>Proceed to Payment</Button>
+                  <Button onClick={() => handleContinue()}>Proceed to Payment</Button>
                 </CardFooter>
               </Card>
             </TabsContent>

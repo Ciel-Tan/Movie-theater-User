@@ -112,8 +112,8 @@ const SearchGrid = ({ data, query }: ISearchGridProps) => {
                                         <div className="flex items-center gap-1 bg-primary/10 px-2 py-1 rounded-md">
                                             <Clock className="h-4 w-4" />
                                             <span>
-                                            {formatTime(selectedVideo.start_time)} -{" "}
-                                            {formatTime(selectedVideo.end_time)}
+                                                {formatTime(selectedVideo.start_time)} -{" "}
+                                                {formatTime(selectedVideo.end_time)}
                                             </span>
                                         </div>
                                     </div>
