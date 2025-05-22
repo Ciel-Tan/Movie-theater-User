@@ -126,10 +126,10 @@ export default function ConfirmationPage() {
             </div>
           </div>
 
-          <div className="mt-6 flex justify-center">
+          <div className="mt-6 flex justify-center rounded-lg p-6 w-max mx-auto shadow-xl">
             <QRCode
               value={`
-                http://localhost:3001/bookingResult?poster=${encodeURIComponent(movieDetail?.poster_image || "")}
+                https://movie-theater-user.vercel.app/bookingResult?poster=${encodeURIComponent(movieDetail?.poster_image || "")}
                 &title=${encodeURIComponent(movieDetail?.title || "")}
                 &seats=${encodeURIComponent(seats?.join(",") || "")}
                 &date=${encodeURIComponent(date || "")}
@@ -137,7 +137,7 @@ export default function ConfirmationPage() {
                 &cinema=${encodeURIComponent(cinema || "")}
                 &total=${encodeURIComponent(total || "")}
               `}
-              size={256}               // px
+              size={240}               // px
               level="M"                // error correction level
               className="mx-auto"
             />

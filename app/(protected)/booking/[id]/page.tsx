@@ -67,9 +67,11 @@ export default function BookingPage() {
 
   const ticketPrice = getTicket?.ticket_price
   const bookingFee = ticketPrice! * 0.1
+  
   const discountMembership = useMemo(() => {
     return (100 - (accountData?.membership_type.discount_rate || 0)) / 100
   }, [accountData])
+
   const price = useMemo(() => {
     const standardSeatCount = selectedSeats.filter(seat => seat.seat_type.seat_type_name === "Standard").length
     const vipSeatCount = selectedSeats.filter(seat => seat.seat_type.seat_type_name === "VIP").length
