@@ -72,7 +72,10 @@ export function MovieScheduleCard({ movie, getSeatStatus }: MovieScheduleCardPro
                 {movie.showtime?.map((showtime, index) => {
                   const availableSeats = calculateAvailableSeats(showtime)
                   const seatStatus = getSeatStatus(availableSeats)
-                  const displayShowtime = showtime.show_datetime.slice(11, 16)
+                  const displayShowtime = format(new Date(showtime.show_datetime), "HH:mm")
+                  const endTime = new Date(showtime.show_datetime)
+                  endTime.setMinutes(endTime.getMinutes() + movie.run_time)
+                  const endTimeString = format(endTime, "HH:mm")
 
                   return (
                     <TooltipProvider key={`${showtime.showtime_id}-${index}`}> {/* Ensure unique key */}
@@ -82,7 +85,7 @@ export function MovieScheduleCard({ movie, getSeatStatus }: MovieScheduleCardPro
                             <Link
                               href={`/booking/${movie.movie_id}?showtime_id=${showtime.showtime_id}`}
                             >
-                              <span>{displayShowtime}</span>
+                              <span>{displayShowtime} - <span className="text-muted-foreground">{endTimeString}</span></span>
                               <span className={`absolute bottom-0 left-0 right-0 h-1 ${seatStatus.color}`}></span>
                             </Link>
                           </Button>

@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "../ui/button";
-import { LogOut, Search, User } from "lucide-react";
-import { Input } from "../ui/input";
+import { LogOut, User } from "lucide-react";
 import { getCookieToken, removeCookieToken } from "@/utils/cookie";
 import { useState } from "react";
 import { SearchDropdown } from "../search-dropdown";

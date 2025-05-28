@@ -16,6 +16,7 @@ export default function SearchPage() {
 
     const [filteredMovies, setFilteredMovies] = useState<IMovieDetail[]>([])
     const [searchData, setSearchData] = useState<ISearch[]>([])
+    const [isLoading, setIsLoading] = useState(false)
 
     const { moviesData, loading, error } = useGetMovie(0)
 
@@ -28,6 +29,7 @@ export default function SearchPage() {
                 setFilteredMovies={setFilteredMovies}
                 setSearchData={setSearchData}
                 searchType={searchType}
+                setSearchLoading={setIsLoading}
                 query={query}
             />
 
@@ -35,7 +37,7 @@ export default function SearchPage() {
             {searchType !== "content" ? (
                 <MovieGrid type="Now Showing" data={filteredMovies} loading={loading} error={error} />
             ) : (
-                <SearchGrid data={searchData} query={query} />
+                <SearchGrid data={searchData} query={query} isLoading={isLoading} />
             )}
         </div>
     )
