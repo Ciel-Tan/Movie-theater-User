@@ -1,6 +1,9 @@
 import { jwtVerify } from "jose";
 
 const verifyToken = async(token: string, secret: any) => {
+    if (!secret) {
+        throw new Error('JWT Secret is not defined. Check environment variables.');
+    }
     const { payload } = await jwtVerify(token, new TextEncoder().encode(secret));
     return payload;
 }

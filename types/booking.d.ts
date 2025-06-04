@@ -12,6 +12,7 @@ export interface IBooking {
     booking_id: number
     booking_datetime: string
     booking_fee: number
+    total_price: number
     account: IAccount
     showtime: IMovieDetailWithShowtime,
     booking_ticket: [

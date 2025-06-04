@@ -90,6 +90,7 @@ export default function BookingPage() {
         booking_id: 0,
         booking_datetime: new Date().toISOString(),
         booking_fee: bookingFee,
+        total_price: total,
         account: accountData,
         showtime: showtimeData,
         booking_ticket: [
@@ -101,7 +102,7 @@ export default function BookingPage() {
         booking_seat: selectedSeats
       });
     }
-  }, [accountData, getTicket, selectedSeats, showtimeData])
+  }, [accountData, getTicket, selectedSeats, showtimeData, total])
 
   const filteredSeatOccupied = useMemo(() => {
     return bookingData
@@ -121,7 +122,7 @@ export default function BookingPage() {
       setCurrentStep(currentStep + 1)
     }
     else {
-      router.push(`/booking/${params.id}/confirmation?booking_id=${booking_id}&total=${total}`)
+      router.push(`/booking/${params.id}/confirmation?booking_id=${booking_id}`)
     }
   }
 

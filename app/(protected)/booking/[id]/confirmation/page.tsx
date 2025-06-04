@@ -18,7 +18,6 @@ export default function ConfirmationPage() {
   const searchParams = useSearchParams()
 
   const booking_id = searchParams.get("booking_id")
-  const total = searchParams.get("total")
   
   const { bookingDetail } = useGetBooking("booking_id", parseInt(booking_id!))
   
@@ -120,7 +119,7 @@ export default function ConfirmationPage() {
               <div className="pt-4 border-t">
                 <div className="flex justify-between">
                   <span className="font-medium">Total Paid</span>
-                  <span className="font-bold">{formatVND(parseInt(total || "0", 10))}</span>
+                  <span className="font-bold">{formatVND(bookingDetail?.total_price || 0)}</span>
                 </div>
               </div>
             </div>
@@ -135,7 +134,7 @@ export default function ConfirmationPage() {
                 &date=${encodeURIComponent(date || "")}
                 &time=${encodeURIComponent(time || "")}
                 &cinema=${encodeURIComponent(cinema || "")}
-                &total=${encodeURIComponent(total || "")}
+                &total=${encodeURIComponent(bookingDetail?.total_price || 0)}
               `}
               size={240}               // px
               level="M"                // error correction level
