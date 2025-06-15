@@ -41,7 +41,7 @@ export function ShowtimeSelector({ showtimes = [], movieId }: ShowtimeSelectorPr
   }
 
   const getCurrentDay = () => {
-    return showtimes.filter((showtime) => showtime.show_datetime.startsWith(selectedDate))
+    return showtimes?.filter((showtime) => showtime.show_datetime.startsWith(selectedDate))
   }
 
   const getTimesByDayAndCinema = (showtime: IShowtime) => {
@@ -72,7 +72,7 @@ export function ShowtimeSelector({ showtimes = [], movieId }: ShowtimeSelectorPr
 
         <div>
           <h3 className="text-lg font-medium mb-3">Select Time</h3>
-          {getCurrentDay().length > 0 ? (
+          {getCurrentDay()?.length > 0 ? (
             getCurrentDay().map((showtime) => (
               <div key={showtime.showtime_id} className="mb-4">
                 <h4 className="font-medium text-sm text-muted-foreground mb-2">

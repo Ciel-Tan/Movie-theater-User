@@ -32,7 +32,7 @@ const MovieGrid = ({ type, data, loading, error }: IMovieGridProps) => {
                 </Button>
             </div>
         ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-16">
                 {data?.map((movie: IMovieDetail) => (
                     <Card key={movie.movie_id} className="overflow-hidden">
                         <div className="aspect-[2/3] relative">
@@ -59,7 +59,7 @@ const MovieGrid = ({ type, data, loading, error }: IMovieGridProps) => {
                             )}
                         </div>
                         <CardContent className="p-4">
-                            <h3 className="font-bold text-lg mb-1">{movie.title}</h3>
+                            <h3 className="font-bold text-lg mb-1 line-clamp-1">{movie.title}</h3>
                             <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
                                 {type === "Now Showing" && (
                                     <div className="flex items-center gap-1">

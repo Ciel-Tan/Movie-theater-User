@@ -21,7 +21,7 @@ export function MovieCarousel({ type }: { type: string }) {
       </div>
     ) :
       <Carousel className="w-full">
-        <CarouselContent className="-ml-2 md:-ml-4">
+        <CarouselContent className="-ml-2 md:-ml-4 gap-12">
           {moviesData?.map((movie: IMovieDetail) => (
             <CarouselItem key={movie.movie_id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3 xl:basis-1/4">
               <Card className="overflow-hidden">
@@ -48,7 +48,7 @@ export function MovieCarousel({ type }: { type: string }) {
                   )}
                 </div>
                 <CardContent className="p-4">
-                  <h3 className="font-bold text-lg mb-1">{movie.title}</h3>
+                  <h3 className="font-bold text-lg mb-1 line-clamp-1">{movie.title}</h3>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
                       {type === "now-showing" && (
                         <div className="flex items-center gap-1">

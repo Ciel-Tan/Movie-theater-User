@@ -89,7 +89,7 @@ export default function MovieDetail() {
               <h2 className="text-xl font-semibold mb-2">Official Trailer</h2>
               <div className="aspect-video mb-4">
                 <iframe
-                  src={movie?.trailer_link}
+                  src={movie?.trailer_link?.replace("watch?v=", "embed/")}
                   title="YouTube video player"
                   className="w-full h-full"
                   frameBorder="0"
