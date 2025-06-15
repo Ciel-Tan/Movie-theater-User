@@ -66,18 +66,19 @@ export default function BookingPage() {
   }, [accountData]);
 
   const ticketPrice = getTicket?.ticket_price
-  const bookingFee = ticketPrice! * 0.1
+  // const bookingFee = ticketPrice! * 0.1
+  const bookingFee = 0
   
-  const discountMembership = useMemo(() => {
-    return (100 - (accountData?.membership_type.discount_rate || 0)) / 100
-  }, [accountData])
+  // const discountMembership = useMemo(() => {
+  //   return (100 - (accountData?.membership_type.discount_rate || 0)) / 100
+  // }, [accountData])
 
   const price = useMemo(() => {
     const standardSeatCount = selectedSeats.filter(seat => seat.seat_type.seat_type_name === "Standard").length
     const vipSeatCount = selectedSeats.filter(seat => seat.seat_type.seat_type_name === "VIP").length
     const coupleSeatCount = selectedSeats.filter(seat => seat.seat_type.seat_type_name === "Couple").length
     
-    return ticketPrice! * (standardSeatCount + vipSeatCount * 1.1 + coupleSeatCount * 2.2) * discountMembership
+    return ticketPrice! * (standardSeatCount + vipSeatCount * 1.1 + coupleSeatCount * 2.2)
   }, [selectedSeats, ticketPrice])
 
   const total = price + bookingFee
@@ -90,7 +91,7 @@ export default function BookingPage() {
         booking_id: 0,
         booking_datetime: new Date().toISOString(),
         booking_fee: bookingFee,
-        total_price: total,
+        total_price: Number(total.toFixed(2)),
         account: accountData,
         showtime: showtimeData,
         booking_ticket: [
@@ -255,12 +256,30 @@ export default function BookingPage() {
                     <div>
                       <h3 className="font-medium mb-2">Price Breakdown</h3>
                       <div className="space-y-1 text-sm">
-                        <div className="flex justify-between">
-                          <span>
-                            Tickets ({selectedSeats.length} × {formatVND(ticketPrice!)})
-                          </span>
-                          <span>{formatVND(price)}</span>
-                        </div>
+                        {selectedSeats.some(seat => seat.seat_type.seat_type_name === "Standard") && (
+                          <div className="flex justify-between">
+                            <span>
+                              Standard ({selectedSeats.filter(seat => seat.seat_type.seat_type_name === "Standard").length} × {formatVND(ticketPrice!)})
+                            </span>
+                            <span>{formatVND(ticketPrice! * selectedSeats.filter(seat => seat.seat_type.seat_type_name === "Standard").length)}</span>
+                          </div>
+                        )}
+                        {selectedSeats.some(seat => seat.seat_type.seat_type_name === "VIP") && (
+                          <div className="flex justify-between">
+                            <span>
+                              VIP ({selectedSeats.filter(seat => seat.seat_type.seat_type_name === "VIP").length} × {formatVND(ticketPrice! * 1.1)})
+                            </span>
+                            <span>{formatVND(ticketPrice! * 1.1 * selectedSeats.filter(seat => seat.seat_type.seat_type_name === "VIP").length)}</span>
+                          </div>
+                        )}
+                        {selectedSeats.some(seat => seat.seat_type.seat_type_name === "Couple") && (
+                          <div className="flex justify-between">
+                            <span>
+                              Couple ({selectedSeats.filter(seat => seat.seat_type.seat_type_name === "Couple").length} × {formatVND(ticketPrice! * 2.2)})
+                            </span>
+                            <span>{formatVND(ticketPrice! * 2.2 * selectedSeats.filter(seat => seat.seat_type.seat_type_name === "Couple").length)}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between">
                           <span>Booking Fee</span>
                           <span>{formatVND(bookingFee)}</span>
@@ -291,20 +310,13 @@ export default function BookingPage() {
                 <CardContent>
                   <div className="space-y-6">
                     <div className="rounded-lg border p-4 bg-muted/50">
-                      <h3 className="font-medium mb-2">Payment Methods</h3>
-                      <div className="grid gap-4">
-                        <div className="flex items-center space-x-2">
-                          <input type="radio" id="card" name="payment" className="h-4 w-4" defaultChecked />
-                          <label htmlFor="card">Credit/Debit Card</label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <input type="radio" id="paypal" name="payment" className="h-4 w-4" />
-                          <label htmlFor="paypal">PayPal</label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <input type="radio" id="applepay" name="payment" className="h-4 w-4" />
-                          <label htmlFor="applepay">Apple Pay</label>
-                        </div>
+                      <h3 className="font-medium mb-2">Payment via QR Code</h3>
+                      <div className="mt-4 flex justify-center" id="qr-code-container">
+                        <img 
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Payment%20for%20booking%20ID%20${movieDetail?.title}%20Total%20${total}`}
+                          alt="QR Code for Payment"
+                          className="w-36 h-36 object-contain"
+                        />
                       </div>
                     </div>
 
@@ -333,7 +345,7 @@ export default function BookingPage() {
                   <Button variant="outline" onClick={() => setCurrentStep(2)}>
                     Back
                   </Button>
-                  <Button onClick={handleCreateBooking}>
+                  <Button onClick={handleCreateBooking} disabled={bookingLoading}>
                     {bookingLoading ? <Loader /> : "Complete Payment"}
                   </Button>
                 </CardFooter>
@@ -342,7 +354,7 @@ export default function BookingPage() {
           </Tabs>
         </div>
 
-        <div>
+        <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Booking Summary</CardTitle>
@@ -389,6 +401,51 @@ export default function BookingPage() {
                     <span>{formatVND(total)}</span>
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Ticket Pricing Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Ticket Pricing</CardTitle>
+              <CardDescription>Different ticket types available</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {seatTypesData.map((seatType) => (
+                  seatType.seat_type_name !== "Occupied" && seatType.seat_type_name !== "Unavailable" && (
+                    <div key={seatType.seat_type_id} className="flex items-center justify-between p-3 rounded-lg border">
+                      <div className="flex items-center gap-3">
+                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          seatType.seat_type_id === 1 ? "bg-[#E2DDD5]" :
+                          seatType.seat_type_id === 2 ? "bg-red-500" :
+                          seatType.seat_type_id === 3 ? "bg-green-500" :
+                          seatType.seat_type_id === 4 ? "bg-yellow-500" : "bg-pink-500"
+                        }`}>
+                          {seatType.seat_type_name}
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{seatType.seat_type_name} Seat</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold">
+                          {formatVND(
+                            seatType.seat_type_name === "Standard" ? ticketPrice! :
+                            seatType.seat_type_name === "VIP" ? ticketPrice! * 1.1 :
+                            seatType.seat_type_name === "Couple" ? ticketPrice! * 2.2 : 0
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                ))}
+              </div>
+              <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                <p className="text-xs text-muted-foreground">
+                  * Prices may vary based on showtime and day of the week. Additional fees may apply.
+                </p>
               </div>
             </CardContent>
           </Card>
