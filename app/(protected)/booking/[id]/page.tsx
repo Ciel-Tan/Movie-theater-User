@@ -87,9 +87,11 @@ export default function BookingPage() {
 
   useEffect(() => {
     if (accountData && showtimeData && getTicket && selectedSeats) {
+      const now = new Date()
+      const localDateTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
       setBooking({
         booking_id: 0,
-        booking_datetime: new Date().toISOString(),
+        booking_datetime: localDateTime,
         booking_fee: bookingFee,
         total_price: Number(total.toFixed(2)),
         account: accountData,

@@ -18,6 +18,7 @@ export function ShowtimeSelector({ showtimes = [], movieId }: ShowtimeSelectorPr
   const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), "yyyy-MM-dd"))
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [selectedCinema, setSelectedCinema] = useState<string | null>(null)
+  const [selectedShowtimeId, setSelectedShowtimeId] = useState<number | null>(null)
 
   // Generate next 7 days for date selection
   const dates = Array.from({ length: 7 }, (_, i) => {
@@ -29,24 +30,39 @@ export function ShowtimeSelector({ showtimes = [], movieId }: ShowtimeSelectorPr
     }
   })
 
-  const handleTimeSelect = (cinema_name: string, time: string) => {
+  const handleTimeSelect = (cinema_name: string, time: string, showtime_id: number) => {
     setSelectedCinema(cinema_name)
     setSelectedTime(time)
+    setSelectedShowtimeId(showtime_id)
   }
 
   const handleBooking = () => {
-    if (selectedDate && selectedTime && selectedCinema) {
-      router.push(`/booking/${movieId}?date=${selectedDate}&time=${selectedTime}&cinema=${selectedCinema}`)
+    if (selectedShowtimeId) {
+      router.push(`/booking/${movieId}?showtime_id=${selectedShowtimeId}`)
     }
   }
 
-  const getCurrentDay = () => {
-    return showtimes?.filter((showtime) => showtime.show_datetime.startsWith(selectedDate))
-  }
+  const getGroupedShowtimes = () => {
+    const showtimesForDay = showtimes?.filter((showtime) =>
+      showtime.show_datetime.startsWith(selectedDate)
+    );
 
-  const getTimesByDayAndCinema = (showtime: IShowtime) => {
-    return getCurrentDay().filter((st) => st.cinema.cinema_id === showtime.cinema.cinema_id)
-  }
+    if (!showtimesForDay) {
+      return {};
+    }
+
+    return showtimesForDay.reduce((acc, showtime) => {
+      const cinemaName = showtime.cinema.cinema_name;
+      if (!acc[cinemaName]) {
+        acc[cinemaName] = [];
+      }
+      acc[cinemaName].push(showtime);
+      return acc;
+    }, {} as Record<string, IShowtime[]>);
+  };
+
+  const groupedShowtimes = getGroupedShowtimes();
+  const cinemas = Object.keys(groupedShowtimes);
   
   return (
     <Card>
@@ -72,21 +88,31 @@ export function ShowtimeSelector({ showtimes = [], movieId }: ShowtimeSelectorPr
 
         <div>
           <h3 className="text-lg font-medium mb-3">Select Time</h3>
-          {getCurrentDay()?.length > 0 ? (
-            getCurrentDay().map((showtime) => (
-              <div key={showtime.showtime_id} className="mb-4">
+          {cinemas.length > 0 ? (
+            cinemas.map((cinemaName) => (
+              <div key={cinemaName} className="mb-4">
                 <h4 className="font-medium text-sm text-muted-foreground mb-2">
-                  {`${showtime.cinema.cinema_name}`}
+                  {cinemaName}
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {getTimesByDayAndCinema(showtime).map((st) => (
+                  {groupedShowtimes[cinemaName].map((showtime) => (
                     <Button
-                      key={`${st.showtime_id}-${st.cinema.cinema_id}`}
-                      variant={selectedTime === st.show_datetime.slice(11, 16) ? "default" : "outline"}
+                      key={showtime.showtime_id}
+                      variant={
+                        selectedTime === showtime.show_datetime.slice(11, 16) && selectedCinema === cinemaName
+                          ? "default"
+                          : "outline"
+                      }
                       size="sm"
-                      onClick={() => handleTimeSelect(showtime.cinema.cinema_name, st.show_datetime.slice(11, 16))}
+                      onClick={() =>
+                        handleTimeSelect(
+                          cinemaName,
+                          showtime.show_datetime.slice(11, 16),
+                          showtime.showtime_id
+                        )
+                      }
                     >
-                      {st.show_datetime.slice(11, 16)}
+                      {showtime.show_datetime.slice(11, 16)}
                     </Button>
                   ))}
                 </div>
@@ -101,7 +127,7 @@ export function ShowtimeSelector({ showtimes = [], movieId }: ShowtimeSelectorPr
           )}
         </div>
 
-        <Button className="w-full mt-4" disabled={!selectedTime || !selectedCinema} onClick={handleBooking}>
+        <Button className="w-full mt-4" disabled={!selectedShowtimeId} onClick={handleBooking}>
           Continue to Seat Selection
         </Button>
       </CardContent>
