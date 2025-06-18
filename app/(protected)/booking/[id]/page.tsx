@@ -22,6 +22,8 @@ import { IBooking } from "@/types/booking"
 import { useGetShowtime } from "@/hooks/useGetShowtime"
 import { useActionBooking } from "@/hooks/useActionBooking"
 import Loader from "@/components/common/loader"
+import { IPayment } from "@/types/payment"
+import { usePayment } from "@/hooks/usePayment"
 
 export default function BookingPage() {
   const router = useRouter()
@@ -38,6 +40,7 @@ export default function BookingPage() {
 
   const [currentStep, setCurrentStep] = useState(1)
   const [selectedSeats, setSelectedSeats] = useState<ISeat[]>([])
+  const [isRedirecting, setIsRedirecting] = useState(false)
 
   const { movieDetail } = useGetMovie(parseInt(params.id!))
   const { accountData } = useGetAccount(account_id)
@@ -46,7 +49,7 @@ export default function BookingPage() {
   const { bookingData } = useGetBooking("movie_id", parseInt(params.id!))
 
   const { createBookingMovie, bookingLoading, bookingError } = useActionBooking()
-
+  const { createPaymentOrder, paymentLoading, paymentError } = usePayment()
   const ageBasedTicketMap: { [key: string]: { maxAge: number } } = {
     children: { maxAge: 15 },
     under18: { maxAge: 18 },
@@ -63,16 +66,11 @@ export default function BookingPage() {
         return foundTicket
       }
     }
-  }, [accountData]);
+  }, [accountData, ticketsData]);
 
   const ticketPrice = getTicket?.ticket_price
-  // const bookingFee = ticketPrice! * 0.1
   const bookingFee = 0
   
-  // const discountMembership = useMemo(() => {
-  //   return (100 - (accountData?.membership_type.discount_rate || 0)) / 100
-  // }, [accountData])
-
   const price = useMemo(() => {
     const standardSeatCount = selectedSeats.filter(seat => seat.seat_type.seat_type_name === "Standard").length
     const vipSeatCount = selectedSeats.filter(seat => seat.seat_type.seat_type_name === "VIP").length
@@ -86,7 +84,7 @@ export default function BookingPage() {
   const [booking, setBooking] = useState<IBooking>()
 
   useEffect(() => {
-    if (accountData && showtimeData && getTicket && selectedSeats) {
+    if (accountData && showtimeData && getTicket && selectedSeats.length > 0) {
       const now = new Date()
       const localDateTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
       setBooking({
@@ -105,7 +103,7 @@ export default function BookingPage() {
         booking_seat: selectedSeats
       });
     }
-  }, [accountData, getTicket, selectedSeats, showtimeData, total])
+  }, [accountData, getTicket, selectedSeats, showtimeData, total, bookingFee])
 
   const filteredSeatOccupied = useMemo(() => {
     return bookingData
@@ -114,29 +112,90 @@ export default function BookingPage() {
         booking.showtime.show_datetime === `${date} ${time}:00.000000`)
       .map(booking => booking.booking_seat)
       .flat()
-  }, [bookingData])
+  }, [bookingData, cinema, date, time])
 
   const handleSeatSelection = (seats: ISeat[]) => {
     setSelectedSeats(seats)
   }
 
-  const handleContinue = (booking_id?: number) => {
-    if (currentStep < 3) {
+  const handleContinue = () => {
+    if (currentStep < 2) {
       setCurrentStep(currentStep + 1)
-    }
-    else {
-      router.push(`/booking/${params.id}/confirmation?booking_id=${booking_id}`)
     }
   }
 
   const handleCreateBooking = async () => {
+    // This function is kept in case you want to revert to the old payment flow.
     const bookingResult = await createBookingMovie(booking!)
 
     if (bookingError) setCurrentStep(1)
 
-    if (!bookingLoading) {
-      handleContinue(bookingResult.booking_id)
+    if (!bookingLoading && bookingResult) {
+      router.push(`/booking/${params.id}/confirmation?booking_id=${bookingResult.booking_id}`)
     }
+  }
+
+  const handleProceedToPayment = async () => {
+    if (!booking) {
+      console.error("Booking data is not available.");
+      return;
+    }
+    setIsRedirecting(true);
+
+    // 1. Generate a unique order code. PayOS requires an integer.
+    const orderCode = Date.now();
+
+    // 2. Store booking details in sessionStorage to retrieve after payment.
+    sessionStorage.setItem(orderCode.toString(), JSON.stringify(booking));
+    
+    // 3. Prepare payment data for PayOS
+    const paymentData = {
+      orderCode: orderCode,
+      amount: 2000,
+      description: `Thanh toán vé phim`,
+      returnUrl: `${window.location.origin}/booking/${params.id}/order?orderCode=${orderCode}`,
+      cancelUrl: `${window.location.origin}/booking/${params.id}/order?orderCode=${orderCode}&cancelled=true`,
+    };
+
+    const paymentResult = await createPaymentOrder(paymentData)
+
+    if (paymentError) {
+      setIsRedirecting(false)
+      console.error("Failed to create payment.");
+      return
+    }
+
+    if (!paymentLoading) {
+      router.push(paymentResult?.checkoutUrl!)
+    }
+
+    // try {
+    //   // 4. Call backend to get PayOS checkout URL
+    //   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/create`, {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify(paymentData),
+    //   });
+
+    //   if (!response.ok) {
+    //     const errorData = await response.json();
+    //     throw new Error(errorData.error || 'Failed to create payment link');
+    //   }
+
+    //   const result = await response.json();
+      
+    //   // 5. Redirect to PayOS
+    //   router.push(result.checkoutUrl);
+
+    // } catch (error) {
+    //   console.error("Payment initiation failed:", error);
+    //   setIsRedirecting(false);
+    //   // Clean up sessionStorage if payment initiation fails
+    //   sessionStorage.removeItem(orderCode.toString());
+    //   // Optionally: show an error toast/message to the user
+    // }
   }
 
   return (
@@ -298,12 +357,14 @@ export default function BookingPage() {
                   <Button variant="outline" onClick={() => setCurrentStep(1)}>
                     Back
                   </Button>
-                  <Button onClick={() => handleContinue()}>Proceed to Payment</Button>
+                  <Button onClick={handleProceedToPayment} disabled={isRedirecting || selectedSeats.length === 0}>
+                    {isRedirecting ? <Loader /> : "Proceed to Payment"}
+                  </Button>
                 </CardFooter>
               </Card>
             </TabsContent>
 
-            <TabsContent value="step-3" className="mt-6">
+            {/* <TabsContent value="step-3" className="mt-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Payment</CardTitle>
@@ -352,7 +413,7 @@ export default function BookingPage() {
                   </Button>
                 </CardFooter>
               </Card>
-            </TabsContent>
+            </TabsContent> */}
           </Tabs>
         </div>
 
